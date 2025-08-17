@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <link type="text/css" href="/static/index.css" rel="stylesheet">
+    <meta charset="UTF-8" />
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+    <title>Форма входа</title>
+
+    <style>
+        /* Basic styling for the body and form */
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background-color: #f0f0f0;
+        }
+
+        form {
+            background-color: #ffffff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Styling for the label */
+        label {
+            display: block; /* Makes the label take up its own line */
+            margin-bottom: 8px; /* Adds space below the label */
+            color: #333; /* Sets text color */
+            font-weight: bold; /* Makes the text bold */
+            font-size: 1.1em; /* Increases font size slightly */
+            cursor: pointer; /* Changes cursor to pointer on hover */
+        }
+
+        /* Styling for the input field */
+        input[type="text"], input[type="password"] {
+            width: calc(100% - 20px); /* Full width minus padding */
+            padding: 10px;
+            margin-bottom: 20px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-size: 1em;
+        }
+
+        /* Focus state for the input */
+        input[type="text"]:focus {
+            border-color: #007bff; /* Blue border on focus */
+            outline: none; /* Removes default outline */
+            box-shadow: 0 0 5px rgba(0, 123, 255, 0.5); /* Blue shadow on focus */
+        }
+
+        input[type="submit"],
+        input[type="reset"] {
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px 15px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-right: 10px;
+        }
+        input[type="reset"] {
+            background-color: #f44336;
+        }
+        input[type="submit"]:hover,
+        input[type="reset"]:hover {
+            opacity: 0.8;
+        }
+    </style>
+</head>
+<body style="display: flex; align-items: center; justify-content: center">
+<div class="index-page">
+    {% include "header.html" %}
+    <h1>Введите логин и пароль</h1>
+    <form method="POST">
+        <label for="login">ID: </label>
+        <input id="login" name="login" type="text"/>
+        <label for="password">Пароль: </label>
+        <input id="password" name="password" type="password"/>
+        <input type="submit" value="Войти">
+        <input type="reset" value="Cброс">
+    </form>
+</div>
+</body>
+</html>
