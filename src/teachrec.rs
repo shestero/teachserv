@@ -30,12 +30,13 @@ impl TeachRec {
         format!("{}\t{}", self.id, self.name)
     }
     
-    pub fn name_only(id_and_name: String) -> String {
+    pub fn split_id_and_name(id_and_name: String) -> (String, String) {
         id_and_name
-            .split('\t')
-            .collect::<Vec<_>>()
-            .last()
-            .map_or(String::new(), |s| String::from(*s))
+            .split_once('\t')
+            .map_or(
+                (String::new(), id_and_name.clone()),
+                |(id, name)| (id.to_string(), name.to_string())
+            )
     }
 }
 

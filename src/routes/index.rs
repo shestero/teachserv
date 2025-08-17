@@ -1,3 +1,8 @@
+use std::arch::x86_64;
+use std::fs::DirEntry;
+use std::{fs, io};
+use std::ffi::OsStr;
+use std::path::Path;
 use actix_web::{get, post, web, HttpResponse, Responder, HttpRequest, HttpMessage};
 use actix_identity::Identity;
 use actix_session::storage::RedisSessionStore;
@@ -6,16 +11,63 @@ use ::captcha::Captcha;
 use ::captcha::filters::Noise;
 use actix_web::http::header::ContentType;
 use tera::{Context, Tera};
+use crate::attendance::Attendance;
 use crate::routes::login::Login;
 use crate::teachrec;
 use crate::teachrec::TeachRec;
 
+
+fn read_entity(th_id: &str) -> impl Fn(DirEntry) -> Option<Attendance> {
+    move |entry| {
+        let path = entry.path();
+        if path.extension() != Some(OsStr::new("tsv")) {
+            None
+        } else {
+            path.file_stem()
+                .and_then(|name| name.to_str())
+                .filter(|name| name.starts_with(th_id))
+                .map(|_| Attendance::read(path.to_str().unwrap()))
+                .and_then(|r| r.ok())
+        }
+    }
+}
+
+fn read_attendance_dir<'a>(th_id: &str) -> impl Fn(&str) -> io::Result<Vec<Attendance>> {
+    |path| {
+        let path = Path::new(path);
+        Ok(
+            fs::read_dir(path)?
+                .filter_map(|r| r.ok())
+                .filter_map(read_entity(th_id))
+                .collect::<Vec<_>>()
+        )
+    }
+}
+
 #[get("/")]
 async fn index(request: HttpRequest, user: Option<Identity>) -> impl Responder {
     if let Some(user) = user {
-        let body: String =
-            format!("Добро пожаловать, {}!", TeachRec::name_only(user.id().unwrap())) +
-                "<br><a href=\"logout\">Выйти</a>";
+        let mut tera = Tera::new("templates/**/*").unwrap();
+        tera.autoescape_on(vec![]);
+
+        let (id, name) = TeachRec::split_id_and_name(user.id().unwrap());
+        let id = id.parse().map_or(id, |id: i16| format!("{:04}", id));
+        let opens =
+            read_attendance_dir(id.as_str())("attendance/open")
+                .unwrap_or(Vec::new()); // todo: report errors
+
+        let mut context = Context::new();
+        context.insert("name", format!("{name} (номер {id})").as_str());
+        context.insert("opens", &opens);
+
+        let body =
+            tera
+                .render("index-teacher.html", &context)
+                .expect("Cannot render index-teacher template!");
+
+        HttpResponse::Ok().content_type("text/html; charset=utf-8").body(body)
+
+        /*
         let row: String =
             "<tr>".to_string() + &(1..70).map(|i| format!("<td>{i}</td>")).collect::<Vec<_>>().join("") + "</tr>\n";
         let table: String =
@@ -32,6 +84,7 @@ async fn index(request: HttpRequest, user: Option<Identity>) -> impl Responder {
                 </div>"
             );
         HttpResponse::Ok().content_type("text/html; charset=utf-8").body(body + table.as_str())
+        */
     } else {
         // HttpResponse::Ok().content_type("text/html; charset=utf-8").body("Welcome Anonymous!".to_owned())
         web::Redirect::to("/login").temporary().respond_to(&request).map_into_boxed_body()
@@ -60,7 +113,7 @@ async fn login(request: HttpRequest, form: web::Form<Login>) -> impl Responder {
     // e.g. password-based, biometric, etc.
     // [...]
 
-    match teachrec::TeachRec::find(form.into_inner()) {
+    match TeachRec::find(form.into_inner()) {
         Some(rec) => {
             // attach a verified user identity to the active session
             Identity::login(&request.extensions(), rec.id_and_name()).unwrap();

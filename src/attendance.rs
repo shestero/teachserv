@@ -17,6 +17,7 @@ pub struct Attendance {
     ss_name: String,
     date_min: NaiveDate,
     date_max: NaiveDate,
+    date_filled: Option<NaiveDate>,
     students: HashMap<i16, (String, Vec<String>)>
 }
 
@@ -69,6 +70,7 @@ impl Attendance {
             ss_name: parameters.get("ss_name").expect("No ss_name!").to_string(),
             date_min: NaiveDate::parse_from_str(parameters.get("date_min").expect("No date_min!"), format_str).expect("Cannot parse date_min"),
             date_max: NaiveDate::parse_from_str(parameters.get("date_max").expect("No date_max!"), format_str).expect("Cannot parse date_max"),
+            date_filled: parameters.get("date_filled").map(|d| NaiveDate ::parse_from_str(d, format_str).expect("Cannot parse date_filled")),
             students: students
         };
         Ok(attendance)
