@@ -86,6 +86,7 @@ async fn index(request: HttpRequest, user: Option<Identity>) -> impl Responder {
         HttpResponse::Ok().content_type("text/html; charset=utf-8").body(body + table.as_str())
         */
     } else {
+        println!("no auth! redirect to login...");
         // HttpResponse::Ok().content_type("text/html; charset=utf-8").body("Welcome Anonymous!".to_owned())
         web::Redirect::to("/login").temporary().respond_to(&request).map_into_boxed_body()
     }
@@ -116,8 +117,17 @@ async fn login(request: HttpRequest, form: web::Form<Login>) -> impl Responder {
     match TeachRec::find(form.into_inner()) {
         Some(rec) => {
             // attach a verified user identity to the active session
-            Identity::login(&request.extensions(), rec.id_and_name()).unwrap();
-            web::Redirect::to("/").see_other().respond_to(&request).map_into_boxed_body()
+            println!("rec found: {:?}", rec);
+
+            Identity::login(&request.extensions(), rec.id_and_name())
+                .err()
+                .iter()
+                .for_each(|e| println!("login error: {:?}", e));
+
+            web::Redirect::to("/")
+                .see_other()
+                .respond_to(&request)
+                .map_into_boxed_body()
         },
         None =>
             HttpResponse::Ok().body("Wrong login/password")
