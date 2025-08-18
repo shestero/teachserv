@@ -7,15 +7,19 @@
 </head>
 <body>
     Добро пожаловать, {{ name }}!
-    <br>
-    <a href="\logout">Выйти</a>
+    <span class="span-right">
+        <a href="\logout">Выйти</a>
+    </span>
     <hr>
+    <div class="block">
     <h3>Таблицы учёта посещаемости для заполнения:</h3>
-    <ol>
-        {% for item in opens %}
-        <li>{{ item.id }} ({{ item.date_min }} - {{ item.date_max }})</li>
-        {% endfor %}
-    </ol>
-    <h3>Заполненные таблицы учёта посещаемости:</h3>
+        <ol>{% for item in opens %}
+            <li><a href="/table/{{ item.id }}">{{ item.id }}</a> ({{ item.date_min }} - {{ item.date_max }})</li>
+        {% endfor %}</ol>
+    </div>
+    <br>
+    <div class="block">
+        <h3>Заполненные таблицы учёта посещаемости:</h3>
+    </div>
 </body>
 </html>

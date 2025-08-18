@@ -1,0 +1,21 @@
+<html>
+<head>
+    <link type="text/css" href="/static/index.css" rel="stylesheet">
+    <meta charset="UTF-8">
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+    <title>Таблица посещаемости</title>
+</head>
+<body>
+    <h2>Таблица {{ name }}</h2>
+    Преподаватель {{ teacher }}.
+    <span class="span-right">
+        <a href="\">&uArr; Назад к списку таблиц</a>
+    </span>
+    <hr>
+    <form class="block" method="POST">
+        {{ table }}
+        <input type="submit" value="Сохранить">
+        <input type="submit" value="Сохранить и закрыть">
+    </form>
+</body>
+</html>

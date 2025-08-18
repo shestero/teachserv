@@ -1,11 +1,17 @@
 use attendance::Attendance;
 use config::Config;
 
+use actix_web::{cookie::Key, App, HttpServer, HttpResponse};
+use actix_identity::IdentityMiddleware;
+use actix_session::{storage::RedisSessionStore, SessionMiddleware};
+use actix_session::storage::CookieSessionStore;
+
 mod routes;
 mod teachrec;
 mod attendance;
 
 use routes::index;
+use crate::routes::teacher;
 
 #[macro_use]
 lazy_static::lazy_static! {
@@ -22,11 +28,6 @@ lazy_static::lazy_static! {
     static ref port: u16 =
         u16::try_from(settings.get_int("port").unwrap_or(8888)).unwrap_or(8888);
 }
-
-use actix_web::{cookie::Key, App, HttpServer, HttpResponse};
-use actix_identity::IdentityMiddleware;
-use actix_session::{storage::RedisSessionStore, SessionMiddleware};
-use actix_session::storage::CookieSessionStore;
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
@@ -72,6 +73,13 @@ async fn main() -> std::io::Result<()> {
             .service(index::logout)
             .service(index::login_form)
             .service(index::captcha)
+            .service(teacher::table)
+            .service(
+                actix_files::Files::new("/static", "static")
+                    .index_file("index.html") // todo
+                    .show_files_listing() // todo
+                    .use_last_modified(true)
+            )
     })
         .bind(((*host).as_str(), *port))?
         .run()

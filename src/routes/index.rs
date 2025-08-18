@@ -32,7 +32,7 @@ fn read_entity<'a>(th_id: &'a str) -> impl Fn(DirEntry) -> Option<Attendance> + 
     }
 }
 
-fn read_attendance_dir<'a>(th_id: &'a str) -> impl Fn(&str) -> io::Result<Vec<Attendance>> + 'a {
+pub fn read_attendance_dir<'a>(th_id: &'a str) -> impl Fn(&str) -> io::Result<Vec<Attendance>> + 'a {
     |path| {
         let path = Path::new(path);
         Ok(
@@ -67,24 +67,6 @@ async fn index(request: HttpRequest, user: Option<Identity>) -> impl Responder {
 
         HttpResponse::Ok().content_type("text/html; charset=utf-8").body(body)
 
-        /*
-        let row: String =
-            "<tr>".to_string() + &(1..70).map(|i| format!("<td>{i}</td>")).collect::<Vec<_>>().join("") + "</tr>\n";
-        let table: String =
-            format!(
-                "\
-                <div style=\"margin: 20px\">\
-                <div style=\"overflow-x: auto; width: 100%;\">\
-                <table border=\"1\" cellpadding=\"10\" \
-                style=\"white-space: nowrap; border: medium solid; border-collapse: collapse;\">\
-                {row}\
-                {row}\
-                </table>\
-                </div>\
-                </div>"
-            );
-        HttpResponse::Ok().content_type("text/html; charset=utf-8").body(body + table.as_str())
-        */
     } else {
         println!("no auth! redirect to login...");
         // HttpResponse::Ok().content_type("text/html; charset=utf-8").body("Welcome Anonymous!".to_owned())

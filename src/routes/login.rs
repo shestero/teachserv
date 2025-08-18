@@ -3,7 +3,7 @@ use serde::Deserialize;
 #[derive(Debug, Deserialize)]
 pub struct Login {
     pub login: String,
-    pub /* temp */ password: String,
+    password: String,
 }
 
 impl Login {
