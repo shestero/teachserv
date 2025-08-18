@@ -17,7 +17,7 @@ use crate::teachrec;
 use crate::teachrec::TeachRec;
 
 
-fn read_entity(th_id: &str) -> impl Fn(DirEntry) -> Option<Attendance> {
+fn read_entity<'a>(th_id: &'a str) -> impl Fn(DirEntry) -> Option<Attendance> + 'a {
     move |entry| {
         let path = entry.path();
         if path.extension() != Some(OsStr::new("tsv")) {
@@ -32,7 +32,7 @@ fn read_entity(th_id: &str) -> impl Fn(DirEntry) -> Option<Attendance> {
     }
 }
 
-fn read_attendance_dir<'a>(th_id: &str) -> impl Fn(&str) -> io::Result<Vec<Attendance>> {
+fn read_attendance_dir<'a>(th_id: &'a str) -> impl Fn(&str) -> io::Result<Vec<Attendance>> + 'a {
     |path| {
         let path = Path::new(path);
         Ok(
