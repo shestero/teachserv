@@ -26,6 +26,7 @@ lazy_static::lazy_static! {
 use actix_web::{cookie::Key, App, HttpServer, HttpResponse};
 use actix_identity::IdentityMiddleware;
 use actix_session::{storage::RedisSessionStore, SessionMiddleware};
+use actix_session::storage::CookieSessionStore;
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
@@ -54,11 +55,18 @@ async fn main() -> std::io::Result<()> {
             // AFTER the identity middleware: `actix-web` invokes middleware in the OPPOSITE
             // order of registration when it receives an incoming request.
             // ??
+            .wrap(IdentityMiddleware::default())
+            /*
             .wrap(SessionMiddleware::new(
                 redis_store.clone(),
                 secret_key.clone(),
             ))
-            .wrap(IdentityMiddleware::default())
+            */
+            .wrap(
+                SessionMiddleware::builder(CookieSessionStore::default(), Key::from(&[0; 64]))
+                    .cookie_secure(false)
+                    .build()
+            )
             .service(index::index)
             .service(index::login)
             .service(index::logout)
