@@ -48,15 +48,17 @@ async fn main() -> std::io::Result<()> {
     HttpServer::new(move || {
         App::new()
             // Install the identity framework first.
-            .wrap(IdentityMiddleware::default())
+            // ??
             // The identity system is built on top of sessions. You must install the session
             // middleware to leverage `actix-identity`. The session middleware must be mounted
             // AFTER the identity middleware: `actix-web` invokes middleware in the OPPOSITE
             // order of registration when it receives an incoming request.
+            // ??
             .wrap(SessionMiddleware::new(
                 redis_store.clone(),
                 secret_key.clone(),
             ))
+            .wrap(IdentityMiddleware::default())
             .service(index::index)
             .service(index::login)
             .service(index::logout)
