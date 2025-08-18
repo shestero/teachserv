@@ -20,7 +20,7 @@ impl TeachRec {
             .deserialize()
             .find_map(|rec|
                 {
-                    println!("rec={:?}", rec);
+                    println!("th_id={th_id}, login.pw={}, rec={:?}", login.password, rec);
                     rec.ok().filter(|rec: &TeachRec| rec.id == th_id && login.check_password(&rec.pw))
                 }
             )
