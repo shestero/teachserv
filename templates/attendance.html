@@ -1,7 +1,7 @@
-<h3>Ведомость {{ attendance.id }}</h3>
-<b>{{ attendance.ss_name }}</b> ({{ attendance.th_name }}),
-<b>{{ attendance.date_min }}</b> - <b>{{ attendance.date_max }}</b>.
-<br>
+<span class="span-left"><u>Предмет</u>: <b>{{ attendance.ss_name }}</b>.</span>
+<span class="span-right"><u>Даты</u>: <b>{{ attendance.date_min }}</b> - <b>{{ attendance.date_max }}</b>.</span>
+<div style="overflow-x: auto; width: 100%;">
 <table>
 {{ table | safe }}
 </table>
+</div>

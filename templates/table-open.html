@@ -6,16 +6,22 @@
     <title>Таблица посещаемости</title>
 </head>
 <body>
-    <h2>Таблица {{ name }}</h2>
-    Преподаватель {{ teacher }}.
+    <span class="span-right">
+        <a href="\logout">Выйти &rarrlp;</a>
+    </span>
     <span class="span-right">
         <a href="\">&uArr; Назад к списку таблиц</a>
     </span>
-    <hr>
+    <span class="span-left">
+        <u>Преподаватель</u>: <div style="display:inline-block">{{ teacher }}</div>.
+    </span>
+    <br>
+    <h2>Таблица посещаемости {{ name }}</h2>
     <form class="block" method="POST">
         {{ table }}
         <input type="submit" value="Сохранить">
-        <input type="submit" value="Сохранить и закрыть">
+        <input type="checkbox" name="close" id="close">
+        <label for="close">закрыть таблицу (заполнена, готова к отправке)</label>
     </form>
 </body>
 </html>

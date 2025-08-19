@@ -8,13 +8,14 @@
 <body>
     Добро пожаловать, {{ name }}!
     <span class="span-right">
-        <a href="\logout">Выйти</a>
+        <a href="\logout">Выйти &rarrlp;</a>
     </span>
     <hr>
     <div class="block">
     <h3>Таблицы учёта посещаемости для заполнения:</h3>
         <ol>{% for item in opens %}
-            <li><a href="/table/{{ item.id }}">{{ item.id }}</a> ({{ item.date_min }} - {{ item.date_max }})</li>
+            <li><a href="/table/{{ item.id }}">{{ item.id }}</a>
+                <div style="display:inline-block">({{ item.date_min }} - {{ item.date_max }})</div></li>
         {% endfor %}</ol>
     </div>
     <br>

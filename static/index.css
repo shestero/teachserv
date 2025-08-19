@@ -15,36 +15,18 @@ body {
     background-color: #ffffff;
     padding: 20px;
     border-radius: 8px;
+    -moz-border-radius: 8px;
     box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
 }
 
-/* Styling for the label */
-label {
-    display: block; /* Makes the label take up its own line */
-    margin-bottom: 8px; /* Adds space below the label */
-    color: #333; /* Sets text color */
-    font-weight: bold; /* Makes the text bold */
-    font-size: 1.1em; /* Increases font size slightly */
-    cursor: pointer; /* Changes cursor to pointer on hover */
+input[type="text"][size="1"] {
+    background-color: inherit;
+    text-align: center;
+    font-weight: bold;
+    border: 1px solid lightgray;
 }
 
-/* Styling for the input field */
-input[type="text"], input[type="password"] {
-    width: calc(100% - 20px); /* Full width minus padding */
-    padding: 10px;
-    margin-bottom: 20px;
-    border: 1px solid #ccc;
-    border-radius: 4px;
-    font-size: 1em;
-}
-
-/* Focus state for the input */
-input[type="text"]:focus {
-    border-color: #007bff; /* Blue border on focus */
-    outline: none; /* Removes default outline */
-    box-shadow: 0 0 5px rgba(0, 123, 255, 0.5); /* Blue shadow on focus */
-}
-
+/* Focus state for the form buttons */
 input[type="submit"],
 input[type="reset"] {
     background-color: #4CAF50;
@@ -63,10 +45,41 @@ input[type="reset"]:hover {
     opacity: 0.8;
 }
 
-/* custom CSS classes */
+.span-left {
+    float: left;
+    horiz-align: left;
+    vertical-align: top;
+    min-width: 200pt;
+}
+
 .span-right {
     float: right;
-    align: left;
-    width: 240pt;
+    horiz-align: right;
+    text-align: right;
     vertical-align: top;
+    margin-left: 18px;
+}
+
+table {
+    border: 1px solid #ccc;
+    border-spacing: 2px 5px;
+    margin: 16px 0 16px 0;
+}
+
+td {
+    padding: 0px;
+    min-width: 18pt;
+}
+
+.idcol {
+    color: darkgray;
+    font-size: small;
+}
+
+.namecol {
+    min-width: 130pt;
+}
+
+.weekend {
+    background-color: #e8d0d0;
 }

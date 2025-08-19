@@ -1,7 +1,7 @@
 use std::error;
 use std::fs::File;
 use std::io::{self, BufRead, BufReader};
-use chrono::{Datelike, NaiveDate};
+use chrono::{Datelike, NaiveDate, Weekday};
 use std::collections::HashMap;
 use std::path::Path;
 use serde::{Deserialize, Serialize};
@@ -117,7 +117,13 @@ impl Attendance {
                 "<thead>\n<th>id</th>\n<th>Имя</th>\n{}\n</thead>\n",
                 self.date_range()
                     .into_iter()
-                    .map(|d| format!("<th>{}</th>", d.day()))
+                    .map(|d| {
+                        let weekend = match d.weekday() {
+                            Weekday::Sat | Weekday::Sun => " class=\"weekend\"",
+                            _ => ""
+                        };
+                        format!("<th{weekend}>{}</th>", d.day())
+                    })
                     .collect::<Vec<_>>()
                     .join("\n") // todo: check if Saturday or Sunday
             ) +
@@ -126,13 +132,24 @@ impl Attendance {
                 v
                     .into_iter()
                     .map(|(id, (name, v))|
-                        format!("<tr>\n\t<td>{id}</td>\n\t<td>{name}</td>\n{}\n</tr>\n",
+                        format!(
+                            "<tr>\n\t<td class=\"idcol\">{id}</td>\n\t<td class=\"namecol\">{name}</td>\n{}\n</tr>\n",
                             self.date_range()
                                 .iter()
                                 .enumerate()
-                                .map(|(idx, d)|
-                                    format!("\t<td>{}</td>", v.get(idx).unwrap_or(&"".to_string()))
-                                )
+                                .map(|(idx, d)| {
+                                    let weekend = match d.weekday() {
+                                        Weekday::Sat | Weekday::Sun => " class=\"weekend\"",
+                                        _ => ""
+                                    };
+                                    let default = "".to_string();
+                                    let v = v.get(idx).unwrap_or(&default);
+                                    let v = format!(
+                                        "<input name=\"S{id:05}D{d}\" type=\"text\" size=\"1\" value=\"{}\">",
+                                        v
+                                    );
+                                    format!("\t<td{weekend}>{}</td>", v)
+                                })
                                 .collect::<Vec<_>>()
                                 .join("\n")
                                 .as_str()
