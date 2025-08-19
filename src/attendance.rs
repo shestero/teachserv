@@ -145,7 +145,10 @@ impl Attendance {
                                     let default = "".to_string();
                                     let v = v.get(idx).unwrap_or(&default);
                                     let v = format!(
-                                        "<input name=\"S{id:05}D{d}\" type=\"text\" size=\"1\" value=\"{}\">",
+                                        "<input \
+                                            name=\"S{id:05}D{d}\" \
+                                            type=\"number\" min=\"0\" \
+                                            size=\"1\" value=\"{}\">",
                                         v
                                     );
                                     format!("\t<td{weekend}>{}</td>", v)

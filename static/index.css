@@ -19,11 +19,18 @@ body {
     box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
 }
 
-input[type="text"][size="1"] {
+input[type="number"] {
     background-color: inherit;
     text-align: center;
     font-weight: bold;
     border: 1px solid lightgray;
+    -moz-appearance: textfield; /* For Firefox */
+}
+/* For Chrome, Safari, Edge, Opera */
+input[type="number"]::-webkit-outer-spin-button,
+input[type="number"]::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
 }
 
 /* Focus state for the form buttons */
