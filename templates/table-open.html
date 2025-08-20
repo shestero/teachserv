@@ -6,11 +6,8 @@
     <title>Таблица посещаемости</title>
 </head>
 <body>
-    <span class="span-right">
-        <a href="\logout">Выйти &rarrlp;</a>
-    </span>
-    <span class="span-right">
-        <a href="\">&uArr; Назад к списку таблиц</a>
+    <span class="span-left">
+        <a href="\logout">&larrlp; Выйти</a>
     </span>
     <span class="span-left">
         <u>Преподаватель</u>: <div style="display:inline-block">{{ teacher }}</div>.
@@ -22,6 +19,8 @@
         <input type="submit" value="Сохранить">
         <input type="checkbox" name="close" id="close">
         <label for="close">закрыть таблицу (заполнена, готова к отправке)</label>
+        &nbsp;&nbsp;
+        <a href="/"><button class="cancel" type="button">Отменить</button></a>
     </form>
 </body>
 </html>

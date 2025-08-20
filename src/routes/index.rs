@@ -51,7 +51,7 @@ async fn index(request: HttpRequest, user: Option<Identity>) -> impl Responder {
         tera.autoescape_on(vec![]);
 
         let (id, name) = TeachRec::split_id_and_name(user.id().unwrap());
-        let id = id.parse().map_or(id, |id: i16| format!("{:04}", id));
+        let id = id.parse().map_or(id, |id: i32| format!("{:04}", id));
         let opens =
             read_attendance_dir(id.as_str())("attendance/open")
                 .unwrap_or(Vec::new()); // todo: report errors

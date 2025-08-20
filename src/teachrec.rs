@@ -4,14 +4,14 @@ use crate::routes::login::Login;
 
 #[derive(Debug, Deserialize)]
 pub struct TeachRec {
-    id: i16,
+    id: i32,
     name: String,
     pw: String,
 }
 
 impl TeachRec {
     pub fn find(login: Login) -> Option<TeachRec> {
-        let th_id: i16 = login.login.parse().ok()?;
+        let th_id: i32 = login.login.parse().ok()?;
 
         let file = File::open("tpws.tsv").expect("No tpws.tsv file!!");
         csv::ReaderBuilder::new()

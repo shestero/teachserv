@@ -40,12 +40,6 @@ async fn main() -> std::io::Result<()> {
         .await
         .unwrap();
 
-    let a = Attendance::read("attendance/open/0031-20250815_214834.tsv");
-    println!("a={:?}", a);
-    //let r = a?.unwrap().attendance_row(287);
-    //println!("r={:?}", r);
-    println!("HTML:\n{:#?}", a?.html());
-
     println!("teachserv: bind to {}:{}", *host, *port);
     HttpServer::new(move || {
         App::new()

@@ -11,14 +11,14 @@ use tera::{Context, Tera};
 pub struct Attendance {
     id: String,
     open: bool,
-    th_id:  i16,
+    th_id:  i32,
     th_name: String,
-    ss_id: i16,
+    ss_id: i32,
     ss_name: String,
     date_min: NaiveDate,
     date_max: NaiveDate,
     date_filled: Option<NaiveDate>,
-    students: HashMap<i16, (String, Vec<String>)>
+    students: HashMap<i32, (String, Vec<String>)>
 }
 
 impl Attendance {
@@ -26,7 +26,7 @@ impl Attendance {
         let file = File::open(tsv_file)?;
         let reader = BufReader::new(file);
 
-        let mut students: HashMap<i16, (String, Vec<String>)> = HashMap::new();
+        let mut students: HashMap<i32, (String, Vec<String>)> = HashMap::new();
         let mut parameters: HashMap<String, String> = HashMap::new();
 
         for line_result in reader.lines() {
@@ -34,7 +34,7 @@ impl Attendance {
                 .split_once('\t')
                 .iter()
                 .for_each(|(key, value)| {
-                    match key.parse::<i16>() {
+                    match key.parse::<i32>() {
                         Ok(st_id) => {
                             let (st_name, attendance_table) =
                                 value
@@ -86,7 +86,7 @@ impl Attendance {
         dates
     }
 
-    pub fn attendance_row(&self, st_id: i16) -> Vec<(NaiveDate, i16)> {
+    pub fn attendance_row(&self, st_id: i32) -> Vec<(NaiveDate, i32)> {
         let (_, v) =
             self.students
                 .get(&st_id)
@@ -110,7 +110,11 @@ impl Attendance {
             .into_iter()
             .collect::<Vec<_>>();
 
-        v.sort_by(|a, b| b.1.0.cmp(&a.1.0)); // todo
+        let mut blanks: Vec<(i32, (String, Vec<String>))> =
+            (1..5).map(|i: i32| (-i, (String::new(), Vec::new()))).collect();
+
+        v.sort_by(|a, b| a.1.0.cmp(&b.1.0));
+        v.append(&mut blanks);
 
         let table =
             format!(
@@ -133,7 +137,14 @@ impl Attendance {
                     .into_iter()
                     .map(|(id, (name, v))|
                         format!(
-                            "<tr>\n\t<td class=\"idcol\">{id}</td>\n\t<td class=\"namecol\">{name}</td>\n{}\n</tr>\n",
+                            "<tr>\n\t<td class=\"idcol\">{id}</td>\n\t<td class=\"namecol\">{}</td>\n{}\n</tr>\n",
+                            if id<1 {
+                                let id = format!("N{id:05}");
+                                format!("<input type=\"text\" name=\"{id}\" placeholder=\"новенький\">")
+                            } else {
+                                name
+                            }
+                            ,
                             self.date_range()
                                 .iter()
                                 .enumerate()
