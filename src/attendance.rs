@@ -18,7 +18,7 @@ pub struct Attendance {
     date_min: NaiveDate,
     date_max: NaiveDate,
     date_filled: Option<NaiveDate>,
-    students: HashMap<i32, (String, Vec<String>)>
+    pub students: HashMap<i32, (String, Vec<String>)>
 }
 
 impl Attendance {
@@ -74,6 +74,13 @@ impl Attendance {
             students: students
         };
         Ok(attendance)
+    }
+
+    pub fn write(&self, tsv_file: &str) {
+        println!("Writing attendance file to {}", tsv_file);
+        println!("{:#?}", self);
+
+        // todo: sort by ss_name but negative id last
     }
 
     pub fn date_range(&self) -> Vec<NaiveDate> {
@@ -159,10 +166,9 @@ impl Attendance {
                                         "<input \
                                             name=\"S{id:05}D{d}\" \
                                             type=\"number\" min=\"0\" \
-                                            size=\"1\" value=\"{}\">",
-                                        v
+                                            size=\"1\" value=\"{v}\">"
                                     );
-                                    format!("\t<td{weekend}>{}</td>", v)
+                                    format!("\t<td{weekend}>{v}</td>")
                                 })
                                 .collect::<Vec<_>>()
                                 .join("\n")

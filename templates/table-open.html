@@ -1,7 +1,8 @@
-<html>
+<html lang="ru">
 <head>
     <link type="text/css" href="/static/index.css" rel="stylesheet">
     <meta charset="UTF-8">
+    <meta http-equiv="Content-Language" content="ru">
     <meta content="width=device-width, initial-scale=1.0" name="viewport" />
     <title>Таблица посещаемости</title>
 </head>
@@ -17,8 +18,8 @@
     <form class="block" method="POST">
         {{ table }}
         <input type="submit" value="Сохранить">
-        <input type="checkbox" name="close" id="close">
-        <label for="close">закрыть таблицу (заполнена, готова к отправке)</label>
+        <input type="checkbox" name="seal" id="seal">
+        <label for="seal">закрыть таблицу (заполнена, готова к отправке)</label>
         &nbsp;&nbsp;
         <a href="/"><button class="cancel" type="button">Отменить</button></a>
     </form>
