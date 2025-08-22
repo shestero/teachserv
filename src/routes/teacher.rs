@@ -67,7 +67,6 @@ async fn table(
     if let Some(user) = user {
         // TODO: check that name correspond to identity !!
 
-        println!("name={name}"); // todo
         let body_str = match String::from_utf8(body.to_vec()) {
             Ok(s) => s,
             Err(e) => return HttpResponse::InternalServerError().body(format!("Failed to parse body: {}", e)),
@@ -118,7 +117,7 @@ async fn table(
 
         attendance.students = students;
 
-        let file_name = format!("attendance/{}.tsv", name); // todo
+        let file_name = format!("attendance/open/{}.tsv", name); // todo
         attendance.write(file_name.as_str());
 
         HttpResponse::Ok().body("ok")

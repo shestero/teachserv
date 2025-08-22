@@ -125,7 +125,7 @@ impl Attendance {
             .iter()
             .for_each(|(st_id, (st_name, data))| {
                 let data =
-                    (0..cols)
+                    (0..cols+1)
                         .map(|i|
                             data.get(i).map_or(String::new(), |s| s.to_string())
                         )
@@ -134,7 +134,7 @@ impl Attendance {
                 lines.push(format!("{st_id}\t{st_name}\t{data}"));
             });
 
-        Attendance::move_to_bak(tsv_file); // todo: check if wotking?
+        Attendance::move_to_bak(tsv_file);
 
         /*
         let mut file =
@@ -144,7 +144,8 @@ impl Attendance {
             writeln!(file, "{}", line)?; // Write the line followed by a newline
         }
         */
-        fs::write(&tsv_file, &lines.join("\n")).ok(); // todo
+        fs::write(&tsv_file, &lines.join("\n"))
+            .expect(format!("Cannot write into file {tsv_file}").as_str());
     }
 
     pub fn date_range(&self) -> Vec<NaiveDate> {
@@ -200,7 +201,7 @@ impl Attendance {
                         format!("<th{weekend}>{}</th>", d.day())
                     })
                     .collect::<Vec<_>>()
-                    .join("\n") // todo: check if Saturday or Sunday
+                    .join("\n")
             ) +
             format!(
                 "<tbody>\n{}\n</tbody>\n",
