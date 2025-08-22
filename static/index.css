@@ -29,6 +29,7 @@ input[type="number"] {
     font-weight: bold;
     border: 1px solid lightgray;
     -moz-appearance: textfield; /* For Firefox */
+    width: 20px;
 }
 /* For Chrome, Safari, Edge, Opera */
 input[type="number"]::-webkit-outer-spin-button,
@@ -97,4 +98,22 @@ th, td {
 
 .weekend {
     background-color: #e8d0d0;
+}
+
+.idcol, .namecol {
+    position: absolute;
+    left: 0;
+    top: auto;
+    border-top-width: 1px;
+    /*only relevant for first row*/
+    margin-top: -1px;
+    /*compensate for top border*/
+}
+
+.idcol {
+    left: 2em;
+}
+
+.namecol {
+    left: 5em;
 }

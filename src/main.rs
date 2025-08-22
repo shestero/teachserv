@@ -9,6 +9,7 @@ use actix_session::storage::CookieSessionStore;
 mod routes;
 mod teachrec;
 mod attendance;
+mod student;
 
 use routes::index;
 use routes::teacher;
@@ -39,6 +40,9 @@ async fn main() -> std::io::Result<()> {
     let redis_store = RedisSessionStore::new("redis://127.0.0.1:6379")
         .await
         .unwrap();
+
+    let students = student::read_students(); // todo
+    println!("{:?} : {:?}", student::students_hash(), students);
 
     println!("teachserv: bind to {}:{}", *host, *port);
     HttpServer::new(move || {

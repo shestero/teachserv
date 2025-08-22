@@ -15,14 +15,14 @@
     <div class="block">
     <h3>Таблицы учёта посещаемости для заполнения:</h3>
         <ol>{% for item in opens %}
-            <li><a href="/table/{{ item.id }}">{{ item.id }}</a>
+            <li><div style="display:inline-block"><a href="/table/{{ item.id }}">{{ item.ss_name }} ({{ item.ss_id }})</a></div>
                 <div style="display:inline-block">({{ item.date_min }} - {{ item.date_max }})</div>
-                <div style="display:inline-block">{{ item.ss_name }} ({{ item.ss_id }})</div></li>
+                </li>
         {% endfor %}</ol>
     </div>
     <br>
     <div class="block">
-        <h3>Заполненные таблицы учёта посещаемости:</h3>
+        <h3>Недавно заполненные таблицы учёта посещаемости:</h3>
     </div>
 </body>
 </html>

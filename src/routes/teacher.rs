@@ -2,6 +2,8 @@ use std::collections::HashMap;
 use crate::{attendance::Attendance, teachrec::TeachRec};
 use actix_identity::Identity;
 use actix_web::{get, post, web, HttpRequest, HttpResponse, Responder};
+use actix_web::web::Redirect;
+use serde::Deserialize;
 use tera::{Context, Tera};
 
 #[get("/table/{name}")]
@@ -57,10 +59,23 @@ async fn table_form(
     }
 }
 
+
+#[derive(Deserialize)]
+struct SearchParams {
+    seal: Option<String>,
+}
+
+impl SearchParams {
+    pub fn seal(&self) -> bool {
+        self.seal == Some(String::from("yes"))
+    }
+}
+
 #[post("/table/{name}")]
 async fn table(
     name: web::Path<String>,
     request: HttpRequest,
+    params: web::Query<SearchParams>,
     body: web::Bytes,
     user: Option<Identity>,
 ) -> impl Responder {
@@ -77,8 +92,8 @@ async fn table(
                 .into_owned()
                 .collect();
 
-        let seal: bool = parsed_form.get("seal").map_or(false, |v| v == "on");
-        println!("sealed={seal}");
+        let seal = params.seal();
+        println!("sealed={:?}", seal); // todo
 
         // Now 'parsed_form' contains a vector of (key, value) tuples
         // You can iterate through it to access individual parameters
@@ -120,14 +135,13 @@ async fn table(
         let file_name = format!("attendance/open/{}.tsv", name); // todo
         attendance.write(file_name.as_str());
 
-        HttpResponse::Ok().body("ok")
+        let origin = request.clone().uri().path().to_string();
+        let redirect = if seal { String::from("/") } else { origin };
+        Redirect::to(redirect).see_other().respond_to(&request).map_into_boxed_body()
 
     } else {
         println!("no auth! redirect to login...");
         // HttpResponse::Ok().content_type("text/html; charset=utf-8").body("Welcome Anonymous!".to_owned())
-        web::Redirect::to("/login")
-            .temporary()
-            .respond_to(&request)
-            .map_into_boxed_body()
+        Redirect::to("/login").temporary().respond_to(&request).map_into_boxed_body()
     }
 }

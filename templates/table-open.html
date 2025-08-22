@@ -5,6 +5,7 @@
     <meta http-equiv="Content-Language" content="ru">
     <meta content="width=device-width, initial-scale=1.0" name="viewport" />
     <title>Таблица посещаемости</title>
+    <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1/jquery.min.js"></script>
 </head>
 <body>
     <span class="span-left">
@@ -16,12 +17,13 @@
     <br>
     <h2>Таблица посещаемости {{ name }}</h2>
     <form class="block" method="POST">
-        {{ table }}
-        <input type="submit" value="Сохранить">
-        <input type="checkbox" name="seal" id="seal">
-        <label for="seal">закрыть таблицу (заполнена, готова к отправке)</label>
-        &nbsp;&nbsp;
-        <a href="/"><button class="cancel" type="button">Отменить</button></a>
+        <div style="width: min-content; max-width: 100%">
+{{ table }}
+            <input type="submit" id="save" value="Сохранить">
+            <a href="/"><button class="cancel" type="button">Отменить</button></a>
+            &nbsp;
+            <div class="span-right"><input type="submit" formaction="?seal=yes" value="Сохранить и закончить"></div>
+        </div>
     </form>
 </body>
 </html>

@@ -190,7 +190,7 @@ impl Attendance {
 
         let table =
             format!(
-                "<thead>\n<th>id</th>\n<th>Имя</th>\n{}\n</thead>\n",
+                "<thead>\n<th class=\"idcol\">id</th>\n<th class=\"namecol\">Имя</th>\n{}\n</thead>\n",
                 self.date_range()
                     .into_iter()
                     .map(|d| {
@@ -229,8 +229,7 @@ impl Attendance {
                                     let v = v.get(idx).unwrap_or(&default);
                                     let v = format!(
                                         "<input \
-                                            name=\"S{id:05}D{d}\" \
-                                            type=\"number\" min=\"0\" \
+                                            name=\"S{id:05}D{d}\" type=\"number\" min=\"0\" \
                                             size=\"1\" value=\"{v}\">"
                                     );
                                     format!("\t<td{weekend}>{v}</td>")
