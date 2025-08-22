@@ -95,7 +95,7 @@ async fn table(
             attendance
                 .students
                 .iter()
-                .map(|(&id, (_, _))| {
+                .map(|(&id, (st_name, _))| {
                     let marks: Vec<String> =
                         dr
                             .iter()
@@ -108,7 +108,7 @@ async fn table(
 
                             })
                             .collect();
-                    if id > 0 { (id, (name.clone(), marks)) } else {
+                    if id > 0 { (id, (st_name.clone(), marks)) } else {
                         let name: String = parsed_form.get(format!("N{id:05}").as_str()).map_or(String::new(), |s| s.clone());
                         (id, (name, marks))
                     }
