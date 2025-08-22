@@ -11,7 +11,7 @@ mod teachrec;
 mod attendance;
 
 use routes::index;
-use crate::routes::teacher;
+use routes::teacher;
 
 #[macro_use]
 lazy_static::lazy_static! {
@@ -68,6 +68,7 @@ async fn main() -> std::io::Result<()> {
             .service(index::login_form)
             .service(index::captcha)
             .service(teacher::table)
+            .service(teacher::table_form)
             .service(
                 actix_files::Files::new("/static", "static")
                     .index_file("index.html") // todo

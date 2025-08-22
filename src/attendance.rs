@@ -1,9 +1,9 @@
-use std::error;
+use std::{error, fs, iter};
 use std::fs::File;
 use std::io::{self, BufRead, BufReader};
 use chrono::{Datelike, NaiveDate, Weekday};
 use std::collections::HashMap;
-use std::path::Path;
+use std::path::{Path, PathBuf};
 use serde::{Deserialize, Serialize};
 use tera::{Context, Tera};
 
@@ -18,7 +18,7 @@ pub struct Attendance {
     date_min: NaiveDate,
     date_max: NaiveDate,
     date_filled: Option<NaiveDate>,
-    students: HashMap<i32, (String, Vec<String>)>
+    pub students: HashMap<i32, (String, Vec<String>)>
 }
 
 impl Attendance {
@@ -76,6 +76,78 @@ impl Attendance {
         Ok(attendance)
     }
 
+    fn move_to_bak(original_path_str: &str) -> Option<PathBuf> {
+        let original_path = Path::new(original_path_str);
+
+        // Construct the new path with the .bak extension
+        let mut bak_path_buf = original_path.to_path_buf();
+        let original_file_name = original_path.file_name()?;
+        let new_file_name = format!("{}.bak", original_file_name.to_string_lossy());
+        bak_path_buf.set_file_name(new_file_name);
+
+        // Rename (move) the file
+        fs::rename(&original_path, &bak_path_buf).ok()?;
+
+        Some(bak_path_buf)
+    }
+
+    pub fn write(&self, tsv_file: &str) {
+        println!("Writing attendance file to {}", tsv_file);
+
+        let mut lines: Vec<String> = Vec::new();
+        lines.push(format!("th_id\t{}", self.th_id));
+        lines.push(format!("th_name\t{}", self.th_name));
+        lines.push(format!("ss_id\t{}", self.ss_id));
+        lines.push(format!("ss_name\t{}", self.ss_name));
+        lines.push(format!("date_min\t{}", self.date_min));
+        lines.push(format!("date_max\t{}", self.date_max));
+        self.date_filled.iter().for_each(|date_filled|
+            lines.push(format!("date_filled\t{}", date_filled))
+        );
+
+        let mut rows: Vec<(&i32, &(String, Vec<String>))> =
+            self.students
+                .iter()
+                .filter(|(_, (name, _))| !name.is_empty())
+                .collect();
+
+        rows
+            .sort_by(|a, b|
+                if *a.0 >= 0 && *b.0 >= 0 {
+                    a.1.0.cmp(&b.1.0)
+                } else {
+                    b.0.cmp(a.0)
+                }
+            );
+
+        let cols: usize = self.date_range().len();
+        rows
+            .iter()
+            .for_each(|(st_id, (st_name, data))| {
+                let data =
+                    (0..cols+1)
+                        .map(|i|
+                            data.get(i).map_or(String::new(), |s| s.to_string())
+                        )
+                        .collect::<Vec<_>>()
+                        .join("\t");
+                lines.push(format!("{st_id}\t{st_name}\t{data}"));
+            });
+
+        Attendance::move_to_bak(tsv_file);
+
+        /*
+        let mut file =
+            File::create(tsv_file)
+                .expect(format!("Cannot create file {tsv_file}!").as_str());
+        for line in lines {
+            writeln!(file, "{}", line)?; // Write the line followed by a newline
+        }
+        */
+        fs::write(&tsv_file, &lines.join("\n"))
+            .expect(format!("Cannot write into file {tsv_file}").as_str());
+    }
+
     pub fn date_range(&self) -> Vec<NaiveDate> {
         let mut dates = Vec::new();
         let mut current_date = self.date_min;
@@ -129,7 +201,7 @@ impl Attendance {
                         format!("<th{weekend}>{}</th>", d.day())
                     })
                     .collect::<Vec<_>>()
-                    .join("\n") // todo: check if Saturday or Sunday
+                    .join("\n")
             ) +
             format!(
                 "<tbody>\n{}\n</tbody>\n",
@@ -159,10 +231,9 @@ impl Attendance {
                                         "<input \
                                             name=\"S{id:05}D{d}\" \
                                             type=\"number\" min=\"0\" \
-                                            size=\"1\" value=\"{}\">",
-                                        v
+                                            size=\"1\" value=\"{v}\">"
                                     );
-                                    format!("\t<td{weekend}>{}</td>", v)
+                                    format!("\t<td{weekend}>{v}</td>")
                                 })
                                 .collect::<Vec<_>>()
                                 .join("\n")
