@@ -95,7 +95,7 @@ async fn table(
             attendance
                 .students
                 .iter()
-                .map(|(&id, (name, _))| {
+                .map(|(&id, (_, _))| {
                     let marks: Vec<String> =
                         dr
                             .iter()
