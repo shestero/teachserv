@@ -183,7 +183,7 @@ impl Attendance {
             .collect::<Vec<_>>();
 
         let mut blanks: Vec<(i32, (String, Vec<String>))> =
-            (1..5).map(|i: i32| (-i, (String::new(), Vec::new()))).collect();
+            (1..21).map(|i: i32| (-i, (String::new(), Vec::new()))).collect(); // 20 empty lines
 
         v.sort_by(|a, b| a.1.0.cmp(&b.1.0));
         v.append(&mut blanks);

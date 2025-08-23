@@ -50,7 +50,7 @@ async fn table_form(
             .content_type("text/html; charset=utf-8")
             .body(body)
     } else {
-        println!("no auth! redirect to login...");
+        println!("no auth! redirect to login... Request: {:?}", &request);
         // HttpResponse::Ok().content_type("text/html; charset=utf-8").body("Welcome Anonymous!".to_owned())
         web::Redirect::to("/login")
             .temporary()
@@ -140,7 +140,7 @@ async fn table(
         Redirect::to(redirect).see_other().respond_to(&request).map_into_boxed_body()
 
     } else {
-        println!("no auth! redirect to login...");
+        println!("no auth! redirect to login... Request: {:?}", &request);
         // HttpResponse::Ok().content_type("text/html; charset=utf-8").body("Welcome Anonymous!".to_owned())
         Redirect::to("/login").temporary().respond_to(&request).map_into_boxed_body()
     }
