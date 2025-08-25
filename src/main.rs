@@ -1,7 +1,6 @@
-use attendance::Attendance;
 use config::Config;
 
-use actix_web::{cookie::Key, App, HttpServer, HttpResponse};
+use actix_web::{cookie::Key, App, HttpServer};
 use actix_identity::IdentityMiddleware;
 use actix_session::{storage::RedisSessionStore, SessionMiddleware};
 use actix_session::storage::CookieSessionStore;
@@ -9,9 +8,8 @@ use actix_session::storage::CookieSessionStore;
 mod routes;
 mod teachrec;
 mod attendance;
-mod student;
 
-use routes::index;
+use routes::{index, student};
 use routes::teacher;
 
 #[macro_use]
@@ -37,9 +35,9 @@ async fn main() -> std::io::Result<()> {
     // configuration file or environment variables.
     let secret_key = Key::generate();
 
-    let redis_store = RedisSessionStore::new("redis://127.0.0.1:6379")
-        .await
-        .unwrap();
+//    let redis_store = RedisSessionStore::new("redis://127.0.0.1:6379")
+//        .await
+//        .unwrap();
 
     let students = student::read_students(); // todo
     println!("{:?} : {:?}", student::students_hash(), students);
@@ -71,6 +69,7 @@ async fn main() -> std::io::Result<()> {
             .service(index::logout)
             .service(index::login_form)
             .service(index::captcha)
+            .service(student::students)
             .service(teacher::table)
             .service(teacher::table_form)
             .service(

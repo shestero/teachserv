@@ -13,7 +13,7 @@ use actix_web::http::header::ContentType;
 use tera::{Context, Tera};
 use crate::attendance::Attendance;
 use crate::routes::login::Login;
-use crate::teachrec;
+use crate::routes::user_agent_info;
 use crate::teachrec::TeachRec;
 
 
@@ -45,7 +45,8 @@ pub fn read_attendance_dir<'a>(th_id: &'a str) -> impl Fn(&str) -> io::Result<Ve
 }
 
 #[get("/")]
-async fn index(request: HttpRequest, user: Option<Identity>) -> impl Responder {
+async fn index(req: HttpRequest, user: Option<Identity>) -> impl Responder {
+    user_agent_info(&req, "index");
     if let Some(user) = user {
         let mut tera = Tera::new("templates/**/*").unwrap();
         tera.autoescape_on(vec![]);
@@ -68,9 +69,9 @@ async fn index(request: HttpRequest, user: Option<Identity>) -> impl Responder {
         HttpResponse::Ok().content_type("text/html; charset=utf-8").body(body)
 
     } else {
-        println!("no auth! redirect to login... Request: {:?}", &request);
+        println!("no auth! redirect to login... Request: {:?}", &req);
         // HttpResponse::Ok().content_type("text/html; charset=utf-8").body("Welcome Anonymous!".to_owned())
-        web::Redirect::to("/login").temporary().respond_to(&request).map_into_boxed_body()
+        web::Redirect::to("/login").temporary().respond_to(&req).map_into_boxed_body()
     }
 }
 
@@ -89,7 +90,8 @@ async fn login_form() -> impl Responder {
 }
 
 #[post("/login")]
-async fn login(request: HttpRequest, form: web::Form<Login>) -> impl Responder {
+async fn login(req: HttpRequest, form: web::Form<Login>) -> impl Responder {
+    user_agent_info(&req, "login");
     //let teachers = rdr.deserialize().collect::<Vec<_>>();
 
     // Some kind of authentication should happen here
@@ -101,14 +103,14 @@ async fn login(request: HttpRequest, form: web::Form<Login>) -> impl Responder {
             // attach a verified user identity to the active session
             println!("rec found: {:?}", rec);
 
-            Identity::login(&request.extensions(), rec.id_and_name())
+            Identity::login(&req.extensions(), rec.id_and_name())
                 .err()
                 .iter()
                 .for_each(|e| println!("login error: {:?}", e));
 
             web::Redirect::to("/")
                 .see_other()
-                .respond_to(&request)
+                .respond_to(&req)
                 .map_into_boxed_body()
         },
         None =>

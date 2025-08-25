@@ -212,7 +212,9 @@ impl Attendance {
                             "<tr>\n\t<td class=\"idcol\">{id}</td>\n\t<td class=\"namecol\">{}</td>\n{}\n</tr>\n",
                             if id<1 {
                                 let id = format!("N{id:05}");
-                                format!("<input type=\"text\" name=\"{id}\" placeholder=\"новенький\">")
+                                format!(
+                                    "<input type=\"text\" name=\"{id}\" placeholder=\"новенький\" list=\"{id}\">\n\
+                                    <datalist id=\"{id}\">\n</datalist>")
                             } else {
                                 name
                             }
