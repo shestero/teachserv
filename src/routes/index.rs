@@ -25,7 +25,7 @@ fn read_entity<'a>(th_id: &'a str) -> impl Fn(DirEntry) -> Option<Attendance> + 
         } else {
             path.file_stem()
                 .and_then(|name| name.to_str())
-                .filter(|name| name.starts_with(th_id))
+                .filter(|name| String::from("0000") == th_id || name.starts_with(th_id))
                 .map(|_| Attendance::read(path.to_str().unwrap()))
                 .and_then(|r| r.ok())
         }

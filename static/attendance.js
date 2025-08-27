@@ -67,15 +67,12 @@ $(document).ready(function() {
                         newOption.textContent = option.name;
                         myCombobox.appendChild(newOption);
                     });
-
-                    $('#contentArea').text(response.text); // Update div with fetched content
                 },
                 error: function(xhr, status, error) {
                     console.error("Error loading content:", error);
                 }
             });
         } else {
-            $('#contentArea').empty(); // Clear content if no selection
             myCombobox.innerHTML = '';
         }
     });

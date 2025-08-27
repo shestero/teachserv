@@ -12,6 +12,7 @@ csv = "1.1"
 sha256 = "1.6.0"
 
 actix-web = "4.11"
+actix-web-httpauth = "0.8"
 actix-identity = "0.8.0"
 actix-session = { version = "0.10.1", features = ["redis-session", "cookie-session"] }
 captcha = "1.0.0"

@@ -4,8 +4,10 @@ use actix_web::{get, web, HttpRequest, HttpResponse, Responder};
 use std::collections::HashMap;
 use std::io;
 use actix_web::http::StatusCode;
+use actix_web_httpauth::extractors::basic::BasicAuth;
 use serde::{Deserialize, Serialize};
-use crate::routes;
+use crate::{api_login, api_password, routes};
+use crate::teachrec::TeachRec;
 //use std::iter::Map;
 
 #[derive(Debug, Deserialize, Serialize)]
@@ -26,8 +28,22 @@ pub fn read_students() -> csv::Result<HashMap<i16, String>> {
         .collect()
 }
 
-pub fn students_hash() -> Result<String, io::Error> {
-    sha256::try_digest(std::path::Path::new(STUDENT_FILE))
+#[get("/students/hash")]
+pub async fn students_hash(auth: BasicAuth, req: HttpRequest) -> actix_web::Result<impl Responder> {
+    routes::user_agent_info(&req, "students/hash");
+    // Access the username and password
+    let username = auth.user_id();
+    let password = auth.password().unwrap_or_default(); // password() returns Option<&str>
+
+    // Implement your authentication logic here
+    // For example, compare against hardcoded values or a database
+    if *api_login == username && *api_password == password {
+        let hash = sha256::try_digest(std::path::Path::new(STUDENT_FILE))?;
+        Ok(HttpResponse::Ok().body(hash))
+    } else {
+        println!("no auth!");
+        Ok(HttpResponse::Unauthorized().body("Unauthorized"))
+    }
 }
 
 #[get("/students")]

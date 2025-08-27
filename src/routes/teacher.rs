@@ -14,17 +14,13 @@ async fn table_form(
 ) -> impl Responder {
     if let Some(user) = user {
         // TODO: check that name correspond to identity !!
+        //   (identity "0" is admin)
 
         let mut tera = Tera::new("templates/**/*").unwrap();
         tera.autoescape_on(vec![]);
 
         let (id, th_name) = TeachRec::split_id_and_name(user.id().unwrap());
         let id = id.parse().map_or(id, |id: i32| format!("{:04}", id));
-
-        /*
-        let opens = crate::routes::index::read_attendance_dir(id.as_str())("attendance/open")
-            .unwrap_or(Vec::new()); // todo: report errors
-        */
 
         let file_name = format!("attendance/open/{}.tsv", name);
         let file_name = file_name.as_str();
@@ -92,7 +88,7 @@ async fn table(
                 .into_owned()
                 .collect();
 
-        let seal = params.seal();
+        let seal: bool = params.seal();
         println!("sealed={:?}", seal); // todo
 
         // Now 'parsed_form' contains a vector of (key, value) tuples

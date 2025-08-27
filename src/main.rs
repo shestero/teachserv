@@ -26,6 +26,11 @@ lazy_static::lazy_static! {
         settings.get_string("host").unwrap_or("localhost".to_string());
     static ref port: u16 =
         u16::try_from(settings.get_int("port").unwrap_or(8888)).unwrap_or(8888);
+
+    static ref api_login: String =
+        settings.get_string("api.login").expect("api.login not defined");
+    static ref api_password: String =
+        settings.get_string("api.password").expect("api.password not defined");
 }
 
 #[actix_web::main]
@@ -38,9 +43,6 @@ async fn main() -> std::io::Result<()> {
 //    let redis_store = RedisSessionStore::new("redis://127.0.0.1:6379")
 //        .await
 //        .unwrap();
-
-    let students = student::read_students(); // todo
-    println!("{:?} : {:?}", student::students_hash(), students);
 
     println!("teachserv: bind to {}:{}", *host, *port);
     HttpServer::new(move || {
@@ -70,6 +72,7 @@ async fn main() -> std::io::Result<()> {
             .service(index::login_form)
             .service(index::captcha)
             .service(student::students)
+            .service(student::students_hash)
             .service(teacher::table)
             .service(teacher::table_form)
             .service(
