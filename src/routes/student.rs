@@ -28,7 +28,7 @@ pub fn read_students() -> csv::Result<HashMap<i16, String>> {
         .collect()
 }
 
-#[get("/students/hash")]
+#[get("/api/students/hash")]
 pub async fn students_hash(auth: BasicAuth, req: HttpRequest) -> actix_web::Result<impl Responder> {
     routes::user_agent_info(&req, "students/hash");
     // Access the username and password
