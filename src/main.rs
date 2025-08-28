@@ -1,9 +1,11 @@
 use config::Config;
 
 use actix_web::{cookie::Key, App, HttpServer};
+use actix_web::web::scope;
 use actix_identity::IdentityMiddleware;
 use actix_session::{storage::RedisSessionStore, SessionMiddleware};
 use actix_session::storage::CookieSessionStore;
+use actix_web_httpauth::middleware::HttpAuthentication;
 
 mod routes;
 mod teachrec;
@@ -46,6 +48,10 @@ async fn main() -> std::io::Result<()> {
 
     println!("teachserv: bind to {}:{}", *host, *port);
     HttpServer::new(move || {
+        let api = scope("/api")
+            .wrap(HttpAuthentication::basic(routes::basic_auth_validator))
+            .service(student::students_hash);
+
         App::new()
             // Install the identity framework first.
             // ??
@@ -72,9 +78,9 @@ async fn main() -> std::io::Result<()> {
             .service(index::login_form)
             .service(index::captcha)
             .service(student::students)
-            .service(student::students_hash)
             .service(teacher::table)
             .service(teacher::table_form)
+            .service(api)
             .service(
                 actix_files::Files::new("/static", "static")
                     .index_file("index.html") // todo

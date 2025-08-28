@@ -28,22 +28,10 @@ pub fn read_students() -> csv::Result<HashMap<i16, String>> {
         .collect()
 }
 
-#[get("/api/students/hash")]
-pub async fn students_hash(auth: BasicAuth, req: HttpRequest) -> actix_web::Result<impl Responder> {
-    routes::user_agent_info(&req, "students/hash");
-    // Access the username and password
-    let username = auth.user_id();
-    let password = auth.password().unwrap_or_default(); // password() returns Option<&str>
-
-    // Implement your authentication logic here
-    // For example, compare against hardcoded values or a database
-    if *api_login == username && *api_password == password {
-        let hash = sha256::try_digest(std::path::Path::new(STUDENT_FILE))?;
-        Ok(HttpResponse::Ok().body(hash))
-    } else {
-        println!("no auth!");
-        Ok(HttpResponse::Unauthorized().body("Unauthorized"))
-    }
+#[get("/students/hash")] // /api
+pub async fn students_hash() -> actix_web::Result<impl Responder> {
+    let hash = sha256::try_digest(std::path::Path::new(STUDENT_FILE))?;
+    Ok(HttpResponse::Ok().body(hash))
 }
 
 #[get("/students")]
