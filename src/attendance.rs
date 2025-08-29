@@ -63,7 +63,7 @@ impl Attendance {
 
         let attendance = Attendance {
             id: Path::new(tsv_file).file_stem().unwrap().to_str().unwrap().to_string(),
-            open: tsv_file.contains("/open/"),
+            open: tsv_file.contains("/inbox/"),
             th_id: parameters.get("th_id").expect("No th_id!").parse().expect("Cannot parse th_id"),
             th_name: parameters.get("th_name").expect("No th_name!").to_string(),
             ss_id: parameters.get("ss_id").expect("No ss_id!").parse().expect("Cannot parse ss_id"),
@@ -174,6 +174,10 @@ impl Attendance {
             .collect()
     }
 
+    pub fn blank_range() -> Box<dyn Iterator<Item = i32>> {
+        Box::new((1..21).map(|i: i32| -i))
+    }
+
     pub fn html(&self) -> tera::Result<String> {
         let tera = Tera::new("templates/**/*").unwrap();
 
@@ -183,14 +187,20 @@ impl Attendance {
             .collect::<Vec<_>>();
 
         let mut blanks: Vec<(i32, (String, Vec<String>))> =
-            (1..21).map(|i: i32| (-i, (String::new(), Vec::new()))).collect(); // 20 empty lines
+            Attendance::blank_range()
+                .map(|i: i32| (i, (String::new(), Vec::new())))
+                .collect(); // 20 empty lines
 
         v.sort_by(|a, b| a.1.0.cmp(&b.1.0));
         v.append(&mut blanks);
 
         let table =
             format!(
-                "<thead>\n<th class=\"idcol\">id</th>\n<th class=\"namecol\">Имя</th>\n{}\n</thead>\n",
+                "<thead>\n\
+                <th class=\"numcol\">№</th>\n\
+                <th class=\"idcol\">id</th>\n\
+                <th class=\"namecol\">Имя</th>\n\
+                {}\n</thead>\n",
                 self.date_range()
                     .into_iter()
                     .map(|d| {
@@ -207,10 +217,17 @@ impl Attendance {
                 "<tbody>\n{}\n</tbody>\n",
                 v
                     .into_iter()
-                    .map(|(id, (name, v))|
+                    .enumerate()
+                    .map(|(num, (id, (name, v)))|
                         format!(
-                            "<tr>\n\t<td class=\"idcol\">{id}</td>\n\t<td class=\"namecol\">{}</td>\n{}\n</tr>\n",
-                            if id<1 {
+                            "<tr>\
+                            \t<td class=\"numcol\">{}</td>\n\
+                            \t<td class=\"idcol\"><input name=\"{}\" value=\"{}\"/></td>\n\
+                            \t<td class=\"namecol\">{}</td>\n{}\n</tr>\n",
+                            num + 1,
+                            format!("IN{id:05}"),
+                            if id<0 { String::new() } else { format!("{id}") },
+                            if id<0 {
                                 let id = format!("N{id:05}");
                                 format!(
                                     "<input type=\"text\" name=\"{id}\" placeholder=\"новенький\" list=\"{id}\">\n\

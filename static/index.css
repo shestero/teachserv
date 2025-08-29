@@ -87,22 +87,13 @@ th, td {
     min-width: 18pt;
 }
 
-.idcol {
-    color: darkgray;
-    font-size: small;
-    min-width: 28pt;
-}
-
-.namecol {
-    min-width: 130pt;
-}
 
 .weekend {
     background-color: #e8d0d0;
 }
 
-.idcol, .namecol {
-    background-color: rgba(255, 255, 255, 0.8);
+.numcol, .idcol, .namecol {
+    background-color: rgba(255, 255, 255, 0.9);
     position: absolute;
     left: 0;
     top: auto;
@@ -112,10 +103,32 @@ th, td {
     /*compensate for top border*/
 }
 
+.numcol {
+    text-align: right;
+    left: 1em;
+    width: 1em;
+}
+
 .idcol {
-    left: 2em;
+    text-align: right;
+    color: darkgray;
+    font-size: small;
+    left: 4em;
+    min-width: 28pt;
+    width: 3em;
 }
 
 .namecol {
-    left: 5em;
+    left: 6.5em;
+    min-width: 130pt;
+}
+
+input[name^="IN"] {
+    border: none;
+    background-color: transparent;
+    outline: none;
+    font-size: small;
+    text-align: right;
+    width: 100%;
+    color: darkgray;
 }

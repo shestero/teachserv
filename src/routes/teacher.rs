@@ -1,4 +1,5 @@
 use std::collections::HashMap;
+use std::fs;
 use crate::{attendance::Attendance, teachrec::TeachRec};
 use actix_identity::Identity;
 use actix_web::{get, post, web, HttpRequest, HttpResponse, Responder};
@@ -22,7 +23,7 @@ async fn table_form(
         let (id, th_name) = TeachRec::split_id_and_name(user.id().unwrap());
         let id = id.parse().map_or(id, |id: i32| format!("{:04}", id));
 
-        let file_name = format!("attendance/open/{}.tsv", name);
+        let file_name = format!("attendance/inbox/{}.tsv", name);
         let file_name = file_name.as_str();
         let tbody = Attendance::read(file_name).map_or(
             format!("Не удалось прочитать или найти таблицу {file_name}"),
@@ -93,11 +94,16 @@ async fn table(
 
         // Now 'parsed_form' contains a vector of (key, value) tuples
         // You can iterate through it to access individual parameters
+        /*
         for (key, value) in parsed_form.iter().filter(|(k, _)| k.starts_with("N")) {
-            println!("Key: {}, Value: {}", key, value);
+            println!("[1] Key: {}, Value: {}", key, value);
         }
+        for (key, value) in parsed_form.iter().filter(|(k, _)| k.starts_with("IN")) {
+            println!("[2] Key: {}, Value: {}", key, value);
+        }
+        */
 
-        let file_name = format!("attendance/open/{}.tsv", name);
+        let file_name = format!("attendance/inbox/{}.tsv", name);
         let file_name = file_name.as_str();
         let mut attendance = Attendance::read(file_name).unwrap(); // todo
         let dr = attendance.date_range();
@@ -107,6 +113,29 @@ async fn table(
                 .students
                 .iter()
                 .map(|(&id, (st_name, _))| {
+                    let id_id = format!("IN{id:05}");
+                    let id_parsed: Option<i32> =
+                        parsed_form
+                            .get(id_id.as_str())
+                            .and_then(|s| s.parse().ok());
+                    if let Some(id_parsed) = id_parsed {
+                        assert!(id == id_parsed);
+                    }
+                    (id, Some(st_name))
+                })
+                .chain(Attendance::blank_range().map(|id| (id, None)))
+                .filter_map(|(id, st_name)| {
+                    let st_id: i32 =
+                        parsed_form.get(format!("IN{id:05}").as_str())
+                            .and_then(|s| s.parse().ok())?;
+                    let st_name =
+                        parsed_form.get(format!("N{id:05}").as_str())
+                            .filter(|s| !s.is_empty())
+                            .or(st_name)?
+                            .to_owned();
+                    Some((id, st_id, st_name))
+                })
+                .map(|(id, st_id, st_name)| {
                     let marks: Vec<String> =
                         dr
                             .iter()
@@ -119,20 +148,22 @@ async fn table(
 
                             })
                             .collect();
-                    if id > 0 { (id, (st_name.clone(), marks)) } else {
-                        let name: String = parsed_form.get(format!("N{id:05}").as_str()).map_or(String::new(), |s| s.clone());
-                        (id, (name, marks))
-                    }
+                    (st_id, (st_name, marks))
                 })
                 .collect();
 
         attendance.students = students;
 
-        let file_name = format!("attendance/open/{}.tsv", name); // todo
-        attendance.write(file_name.as_str());
+        let file_name = format!("{}.tsv", name); // todo
+        let file_name_open = format!("attendance/inbox/{file_name}");
+        let file_name_closed = format!("attendance/outbox/{file_name}");
+        attendance.write(file_name_open.as_str());
 
         let origin = request.clone().uri().path().to_string();
-        let redirect = if seal { String::from("/") } else { origin };
+        let redirect = if seal {
+            fs::rename(file_name_open.as_str(), file_name_closed.as_str()).expect("Cannot move!!"); // todo
+            String::from("/")
+        } else { origin };
         Redirect::to(redirect).see_other().respond_to(&request).map_into_boxed_body()
 
     } else {

@@ -1,31 +1,7 @@
 $(document).ready(function() {
-    // Function to populate the combobox
-    /*
-    function populateCombobox() {
-        $.ajax({
-            url: '/students', // Endpoint to fetch options
-            method: 'GET',
-            dataType: 'json',
-            success: function(data) {
-                var combobox = $('#LN-0001');
-                combobox.empty(); // Clear existing options
-                $.each(data, function(index, item) {
-                    combobox.append($('<option>', {
-                        value: item.id,
-                        text: item.name
-                    }));
-                });
-            },
-            error: function(xhr, status, error) {
-                console.error("Error loading combobox options:", error);
-            }
-        });
-    }
-    */
-
     // Function to update content based on selection
     $('input[name^="N-"]').on('input', function() {
-        //const list_name = "L" + $(this).attr('name');
+        const id_name = "I" + $(this).attr('name');
         //const myCombobox = $('input[name="' + list_name + '"]');
         const myCombobox = document.getElementById($(this).attr('name'));
         var selectedValue = $(this).val();
@@ -46,9 +22,16 @@ $(document).ready(function() {
 
             // If a matching option is found, update the input field for display
             if (selectedLabel) {
-                myInput.value = selectedLabel;
-                // Store the actual ID (inputValue) for later use, e.g., in a hidden input
-                // document.getElementById('hiddenIdField').value = inputValue;
+                if ($('input[name^="IN"]').filter(function() {
+                        return $(this).val() === inputValue;
+                    }).length > 0) {
+                    alert('Студент с кодом ' + inputValue + ' уже в таблице!');
+                    myInput.value = '';
+                    $('input[name^="' + id_name + '"]').val('');
+                } else {
+                    myInput.value = selectedLabel;
+                    $('input[name^="' + id_name + '"]').val(inputValue); // Store the actual ID (inputValue)
+                }
             }
         } else if (selectedValue && selectedValue.length >= 2) {
             $.ajax({
@@ -74,6 +57,7 @@ $(document).ready(function() {
             });
         } else {
             myCombobox.innerHTML = '';
+            $('input[name^="' + id_name + '"]').val('');
         }
     });
 

@@ -54,7 +54,7 @@ async fn index(req: HttpRequest, user: Option<Identity>) -> impl Responder {
         let (id, name) = TeachRec::split_id_and_name(user.id().unwrap());
         let id = id.parse().map_or(id, |id: i32| format!("{:04}", id));
         let opens =
-            read_attendance_dir(id.as_str())("attendance/open")
+            read_attendance_dir(id.as_str())("attendance/inbox")
                 .unwrap_or(Vec::new()); // todo: report errors
 
         let mut context = Context::new();
