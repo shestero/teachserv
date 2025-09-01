@@ -1,14 +1,9 @@
-use crate::routes::login::Login;
 use actix_identity::Identity;
 use actix_web::{get, web, HttpRequest, HttpResponse, Responder};
 use std::collections::HashMap;
-use std::io;
 use actix_web::http::StatusCode;
-use actix_web_httpauth::extractors::basic::BasicAuth;
 use serde::{Deserialize, Serialize};
-use crate::{api_login, api_password, routes};
-use crate::teachrec::TeachRec;
-//use std::iter::Map;
+use crate::routes;
 
 #[derive(Debug, Deserialize, Serialize)]
 pub struct Student {

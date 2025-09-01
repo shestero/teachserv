@@ -3,12 +3,14 @@ use actix_web::http::header::HeaderValue;
 use actix_web::dev::ServiceRequest;
 use actix_web::error::ErrorUnauthorized;
 use actix_web_httpauth::extractors::basic::BasicAuth;
+
 use crate::{api_login, api_password};
 
 pub mod index;
 pub mod login;
 pub mod teacher;
 pub mod student;
+pub mod api_tables;
 
 // Write User-Agent information
 pub fn user_agent_info(req: &HttpRequest, prefix: &str) {
