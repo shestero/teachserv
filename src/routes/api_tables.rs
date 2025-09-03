@@ -1,5 +1,10 @@
-use actix_web::{get, put, delete, error, HttpResponse, Responder};
-use actix_web::web::Path;
+use actix_web::{get, put, delete, error, HttpResponse, Responder, web};
+use actix_web::web::{JsonBody, Path};
+use std::fs;
+use log::*;
+
+use crate::filerec::FileRec;
+use crate::files_with_age;
 
 fn is_alphanumeric_underscore_dot(s: &str) -> bool {
     let dot_count = s.chars().filter(|c| *c == '.').count();
@@ -16,9 +21,27 @@ fn check_file_name(file_name: &str) -> actix_web::Result<()> {
     }
 }
 
-#[put("/attendances")] // /api
-pub async fn attendances() -> actix_web::Result<impl Responder> {
-    Ok(HttpResponse::Ok().body("Under constructions"))
+#[get("/attendances/{direction}")] // /api
+pub async fn attendances(direction: Path<String>) -> actix_web::Result<impl Responder> {
+    if direction.as_str() != "inbox" && direction.as_str() != "outbox" {
+        let msg = format!("Wring direction: {}!", direction.as_str());
+        log::error!("{msg}");
+        return Err(error::ErrorMethodNotAllowed(msg))
+    }
+
+    let folder = format!("attendance/{direction}");
+    println!("mask={folder}");
+    let files =
+        files_with_age(folder.as_str())?
+            .into_iter()
+            .filter_map(|r @ FileRec { file: _, age } | {
+                let _ext = r.file.extension().filter(|&ext| ext == "tsv")?;
+                let file = r.file.file_name()?.to_str()?;
+                Some(file.to_owned())
+            })
+            .collect::<Vec<_>>();
+
+    Ok(web::Json::<Vec<String>>(files))
 }
 
 #[put("/attendance/{file}/{hash}")] // /api
@@ -47,24 +70,43 @@ async fn put_attendance_with_hash(
     check_file_name(file.as_str())?;
 
     if let Some(hash_given) = hash {
-        let hash_calculated = sha256::digest(body);
+        let hash_calculated = sha256::digest(&body);
         println!("given: {hash_given} =?= calculated: {hash_calculated}");
         if hash_given != hash_calculated {
             return Err(error::ErrorForbidden("Wrong hash!"))
         }
     }
 
+    let file_path = format!("attendance/input/{file}");
+    if fs::exists(&file_path)? {
+        // return Err(error::ErrorNotFound("File already exists"))
+        warn!("Warning: file {} already exists", &file_path);
+    }
+    fs::write(&file_path, body)?;
+
     Ok(HttpResponse::Ok().body("Under constructions"))
 }
 
-#[get("/attendance1/{file}")] // /api
+#[get("/attendance/{file}")] // /api
 pub async fn get_attendance(file: Path<String>) -> actix_web::Result<impl Responder> {
     check_file_name(file.as_str())?;
-    Ok(HttpResponse::Ok().body("Under constructions"))
+
+    let file_path = format!("attendance/outbox/{file}");
+    let contents = fs::read_to_string(file_path)?;
+    Ok(HttpResponse::Ok().body(contents))
 }
 
 #[delete("/attendance")] // /api
 pub async fn delete_attendance(file: Path<String>) -> actix_web::Result<impl Responder> {
     check_file_name(file.as_str())?;
-    Ok(HttpResponse::Ok().body("Under constructions"))
+
+    let file_path = format!("attendance/outbox/{file}");
+    if !fs::exists(&file_path)? {
+        // return Err(error::ErrorNotFound("File not exists"))
+        warn!("Warning: file {} not exists", &file_path);
+    }
+
+    let _ = fs::remove_file(&file_path)?;
+
+    Ok(HttpResponse::Ok().body("Deleted"))
 }

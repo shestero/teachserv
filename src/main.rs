@@ -19,8 +19,10 @@ use timer::Timer;
 mod routes;
 mod teachrec;
 mod attendance;
+mod filerec;
 
 use routes::{index, student, teacher, api_tables};
+use crate::filerec::FileRec;
 
 #[macro_use]
 lazy_static::lazy_static! {
@@ -50,7 +52,7 @@ lazy_static::lazy_static! {
         settings.get_string("api.password").expect("api.password not defined");
 }
 
-fn files_with_age(dir: &str) -> Result<Vec<(PathBuf, u64)>> {
+fn files_with_age(dir: &str) -> Result<Vec<FileRec>> {
     let now = SystemTime::now();
     Ok(
         fs::read_dir(dir)?
@@ -72,7 +74,7 @@ fn files_with_age(dir: &str) -> Result<Vec<(PathBuf, u64)>> {
                             })?; // Handle potential error if time is earlier than modification
                         let days_ago: u64 = elapsed_duration.as_secs() / 3600 / 24;
 
-                        Ok((path, days_ago))
+                        Ok(FileRec { file: path, age: days_ago })
                     })
                 )
             })
@@ -87,7 +89,7 @@ fn rm_old_files(dir: &str) {
         Err(e) =>
             println!("Error during timer attendance check: {}", e),
         Ok(v) =>
-            v.iter().for_each(|(path, age)|
+            v.iter().for_each(|filerec::FileRec{ file: path, age}|
                 if *age >= *max_table_age_days {
                     println!("Too old ({}): {}", age, path.display());
                     if let Err(e) = fs::remove_file(path) {
@@ -105,6 +107,9 @@ fn on_timer() {
 
 #[actix_web::main]
 async fn main() -> Result<()> {
+    env_logger::init();
+    log::info!("Application started.");
+
     // Start timer
     let timer = Timer::new();
     let _guard = timer.schedule_repeating(Duration::seconds(5), || {
