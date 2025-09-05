@@ -24,7 +24,7 @@ fn check_file_name(file_name: &str) -> actix_web::Result<()> {
 #[get("/attendances/{direction}")] // /api
 pub async fn attendances(direction: Path<String>) -> actix_web::Result<impl Responder> {
     if direction.as_str() != "inbox" && direction.as_str() != "outbox" {
-        let msg = format!("Wring direction: {}!", direction.as_str());
+        let msg = format!("Wrong direction: {}!", direction.as_str());
         log::error!("{msg}");
         return Err(error::ErrorMethodNotAllowed(msg))
     }
@@ -77,14 +77,15 @@ async fn put_attendance_with_hash(
         }
     }
 
-    let file_path = format!("attendance/input/{file}");
+    let file_path = format!("attendance/inbox/{file}");
     if fs::exists(&file_path)? {
         // return Err(error::ErrorNotFound("File already exists"))
         warn!("Warning: file {} already exists", &file_path);
     }
+    println!("file_path={file_path}");
     fs::write(&file_path, body)?;
 
-    Ok(HttpResponse::Ok().body("Under constructions"))
+    Ok(HttpResponse::Ok().body("OK"))
 }
 
 #[get("/attendance/{file}")] // /api
@@ -96,11 +97,18 @@ pub async fn get_attendance(file: Path<String>) -> actix_web::Result<impl Respon
     Ok(HttpResponse::Ok().body(contents))
 }
 
-#[delete("/attendance")] // /api
-pub async fn delete_attendance(file: Path<String>) -> actix_web::Result<impl Responder> {
+#[delete("/attendance/{direction}/{file}")] // /api
+pub async fn delete_attendance(params: Path<(String, String)>) -> actix_web::Result<impl Responder> {
+    let (direction, file) = params.into_inner();
+    if direction.as_str() != "inbox" && direction.as_str() != "outbox" {
+        let msg = format!("Wrong direction: {}!", direction.as_str());
+        log::error!("{msg}");
+        return Err(error::ErrorMethodNotAllowed(msg))
+    }
+
     check_file_name(file.as_str())?;
 
-    let file_path = format!("attendance/outbox/{file}");
+    let file_path = format!("attendance/{direction}/{file}");
     if !fs::exists(&file_path)? {
         // return Err(error::ErrorNotFound("File not exists"))
         warn!("Warning: file {} not exists", &file_path);
@@ -108,5 +116,5 @@ pub async fn delete_attendance(file: Path<String>) -> actix_web::Result<impl Res
 
     let _ = fs::remove_file(&file_path)?;
 
-    Ok(HttpResponse::Ok().body("Deleted"))
+    Ok(HttpResponse::Ok().body("OK"))
 }
