@@ -88,7 +88,7 @@ async fn put_attendance_with_hash(
     Ok(HttpResponse::Ok().body("OK"))
 }
 
-#[get("/attendance/{file}")] // /api
+#[get("/attendance/outbox/{file}")] // /api
 pub async fn get_attendance(file: Path<String>) -> actix_web::Result<impl Responder> {
     check_file_name(file.as_str())?;
 
