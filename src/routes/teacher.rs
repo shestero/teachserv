@@ -12,13 +12,11 @@ async fn table_form(
     name: web::Path<String>,
     request: HttpRequest,
     user: Option<Identity>,
+    tera : web::Data<Tera>
 ) -> impl Responder {
     if let Some(user) = user {
         // TODO: check that name correspond to identity !!
         //   (identity "0" is admin)
-
-        let mut tera = Tera::new("templates/**/*").unwrap();
-        tera.autoescape_on(vec![]);
 
         let (id, th_name) = TeachRec::split_id_and_name(user.id().unwrap());
         let id = id.parse().map_or(id, |id: i32| format!("{:04}", id));
@@ -29,7 +27,7 @@ async fn table_form(
             format!("Не удалось прочитать или найти таблицу {file_name}"),
             |attendance| {
                 attendance
-                    .html()
+                    .html(&tera)
                     .unwrap_or(format!("Не удалось нарисовать таблицу {file_name}"))
             },
         );

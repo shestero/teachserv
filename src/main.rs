@@ -1,8 +1,11 @@
 use std::ffi::OsStr;
 use std::fs;
 use std::io::{Error, ErrorKind, Result};
-use std::path::PathBuf;
+
 use std::time::{SystemTime, SystemTimeError};
+use chrono::{Duration, NaiveDate};
+use tera::{Tera, Value, from_value};
+use timer::Timer;
 
 use config::Config;
 
@@ -12,9 +15,6 @@ use actix_identity::IdentityMiddleware;
 use actix_session::{storage::RedisSessionStore, SessionMiddleware};
 use actix_session::storage::CookieSessionStore;
 use actix_web_httpauth::middleware::HttpAuthentication;
-
-use chrono::Duration;
-use timer::Timer;
 
 mod routes;
 mod teachrec;
@@ -105,6 +105,11 @@ fn on_timer() {
     rm_old_files("attendance/outbox/");
 }
 
+fn format_date_rus(value: &Value, _: &std::collections::HashMap<String, Value>) -> tera::Result<Value> {
+    let date: NaiveDate = from_value(value.clone()).unwrap();
+    Ok(tera::to_value(date.format("%d.%m.%Y").to_string()).unwrap())
+}
+
 #[actix_web::main]
 async fn main() -> Result<()> {
     env_logger::init();
@@ -125,6 +130,10 @@ async fn main() -> Result<()> {
 //        .await
 //        .unwrap();
 
+    let mut tera = Tera::new("templates/**/*").unwrap();
+    tera.autoescape_on(vec![]);
+    tera.register_filter("fmt_date_rus", format_date_rus);
+
     println!("teachserv: bind to {}:{}", *host, *port);
     HttpServer::new(move || {
         let api = scope("/api")
@@ -138,6 +147,7 @@ async fn main() -> Result<()> {
 
         App::new()
             .app_data(PayloadConfig::new(*payload_limit))
+            .app_data(actix_web::web::Data::new(tera.to_owned()))
 
             // Install the identity framework first.
             // ??

@@ -16,7 +16,7 @@
     <h3>Таблицы учёта посещаемости для заполнения:</h3>
         <ol>{% for item in opens %}
             <li><div style="display:inline-block"><a href="/table/{{ item.id }}">{{ item.ss_name }} ({{ item.ss_id }})</a></div>
-                <div style="display:inline-block">({{ item.date_min }} - {{ item.date_max }})</div>
+                <div style="display:inline-block">({{ item.date_min | fmt_date_rus }} - {{ item.date_max | fmt_date_rus }})</div>
                 </li>
         {% endfor %}</ol>
     </div>

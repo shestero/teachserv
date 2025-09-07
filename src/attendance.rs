@@ -4,6 +4,7 @@ use std::io::{self, BufRead, BufReader};
 use chrono::{Datelike, NaiveDate, Weekday};
 use std::collections::HashMap;
 use std::path::{Path, PathBuf};
+use actix_web::web;
 use serde::{Deserialize, Serialize};
 use tera::{Context, Tera};
 
@@ -178,9 +179,7 @@ impl Attendance {
         Box::new((1..21).map(|i: i32| -i))
     }
 
-    pub fn html(&self) -> tera::Result<String> {
-        let tera = Tera::new("templates/**/*").unwrap();
-
+    pub fn html(&self, tera: &web::Data<Tera>) -> tera::Result<String> {
         let mut v = self.students
             .clone() // todo ?
             .into_iter()

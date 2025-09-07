@@ -45,11 +45,13 @@ pub fn read_attendance_dir<'a>(th_id: &'a str) -> impl Fn(&str) -> io::Result<Ve
 }
 
 #[get("/")]
-async fn index(req: HttpRequest, user: Option<Identity>) -> impl Responder {
+async fn index(
+    req: HttpRequest,
+    user: Option<Identity>,
+    tera: web::Data<Tera>
+) -> impl Responder {
     user_agent_info(&req, "index");
     if let Some(user) = user {
-        let mut tera = Tera::new("templates/**/*").unwrap();
-        tera.autoescape_on(vec![]);
 
         let (id, name) = TeachRec::split_id_and_name(user.id().unwrap());
         let id = id.parse().map_or(id, |id: i32| format!("{:04}", id));
@@ -76,9 +78,7 @@ async fn index(req: HttpRequest, user: Option<Identity>) -> impl Responder {
 }
 
 #[get("/login")]
-async fn login_form() -> impl Responder {
-    let mut tera = Tera::new("templates/**/*").unwrap();
-    tera.autoescape_on(vec![]);
+async fn login_form(tera: web::Data<Tera>) -> impl Responder {
     let mut context = Context::new();
 
     let body =

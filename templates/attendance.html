@@ -1,5 +1,6 @@
 <span class="span-left"><u>Предмет</u>: <b>{{ attendance.ss_name }}</b>.</span>
-<span class="span-right"><u>Даты</u>: <b>{{ attendance.date_min }}</b> - <b>{{ attendance.date_max }}</b>.</span>
+<span class="span-right"><u>Даты</u>: <b>{{ attendance.date_min | fmt_date_rus }}</b>
+    - <b>{{ attendance.date_max | fmt_date_rus }}</b>.</span>
 <br>
 <div style="overflow-x: auto; width: 100%;">
 <table style="margin-left: 17em;">
