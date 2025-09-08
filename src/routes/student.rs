@@ -1,6 +1,7 @@
 use actix_identity::Identity;
-use actix_web::{get, web, HttpRequest, HttpResponse, Responder};
+use actix_web::{body, get, put, web, HttpRequest, HttpResponse, Responder};
 use std::collections::HashMap;
+use std::fs;
 use actix_web::http::StatusCode;
 use serde::{Deserialize, Serialize};
 use crate::routes;
@@ -67,4 +68,9 @@ pub async fn students(
                 .body(format!("Get student's list failed: {:?}", e))
         }
     }
+}
+
+#[put("/students")]
+pub async fn put_students(body: String) -> impl Responder {
+    fs::write(STUDENT_FILE, body).map(|_| "OK")
 }
