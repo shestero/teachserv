@@ -4,16 +4,18 @@ $(document).ready(function() {
         const id_name = "I" + $(this).attr('name');
         //const myCombobox = $('input[name="' + list_name + '"]');
         const myCombobox = document.getElementById($(this).attr('name'));
-        var selectedValue = $(this).val();
-        if (selectedValue && $.isNumeric(selectedValue)) {
+        let selectedValue = $(this).val();
+        if (selectedValue && selectedValue > '' && $.isNumeric(selectedValue.split(/\s+/)[0])) {
             const myInput = $(this)[0];
             const myDatalist = document.getElementById($(this).attr('name'));
 
             let selectedLabel = null;
-            const inputValue = myInput.value;
+            let inputValue = myInput.value;
 
             // Find the option with the matching value (ID)
             for (const option of myDatalist.options) {
+                if (!option.value || option.value === '')
+                    continue;
                 if (option.value === inputValue) {
                     selectedLabel = option.textContent;
                     break;
@@ -21,7 +23,9 @@ $(document).ready(function() {
             }
 
             // If a matching option is found, update the input field for display
-            if (selectedLabel) {
+            if (selectedLabel && selectedLabel > '') {
+                if (inputValue > '')
+                    inputValue = inputValue.split(/\s+/)[0];
                 if ($('input[name^="IN"]').filter(function() {
                         return $(this).val() === inputValue;
                     }).length > 0) {
@@ -46,7 +50,7 @@ $(document).ready(function() {
                     myCombobox.innerHTML = '';
                     $.each(response, function(_index, option) {
                         const newOption = document.createElement('option');
-                        newOption.value = option.id;
+                        newOption.value = option.id + ' - ' + option.value; /* некоторые браузеры показывают id вместо value */
                         newOption.textContent = option.name;
                         myCombobox.appendChild(newOption);
                     });
