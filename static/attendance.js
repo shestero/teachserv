@@ -50,7 +50,7 @@ $(document).ready(function() {
                     myCombobox.innerHTML = '';
                     $.each(response, function(_index, option) {
                         const newOption = document.createElement('option');
-                        newOption.value = option.id + ' - ' + option.value; /* некоторые браузеры показывают id вместо value */
+                        newOption.value = option.id + ' - ' + option.name; /* некоторые браузеры показывают id вместо value */
                         newOption.textContent = option.name;
                         myCombobox.appendChild(newOption);
                     });
