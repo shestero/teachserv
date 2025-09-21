@@ -166,7 +166,6 @@ async fn table(
 
     } else {
         println!("no auth! redirect to login... Request: {:?}", &request);
-        // HttpResponse::Ok().content_type("text/html; charset=utf-8").body("Welcome Anonymous!".to_owned())
         Redirect::to("/login").temporary().respond_to(&request).map_into_boxed_body()
     }
 }
