@@ -20,6 +20,7 @@ async fn table_form(
 
         let (id, th_name) = TeachRec::split_id_and_name(user.id().unwrap());
         let id = id.parse().map_or(id, |id: i32| format!("{:04}", id));
+        let is_admin: bool = id.parse() == Ok(0);
 
         let file_name = format!("attendance/inbox/{}.tsv", name);
         let file_name = file_name.as_str();
@@ -27,7 +28,7 @@ async fn table_form(
             format!("Не удалось прочитать или найти таблицу {file_name}"),
             |attendance| {
                 attendance
-                    .html(&tera)
+                    .html(&tera, is_admin)
                     .unwrap_or(format!("Не удалось нарисовать таблицу {file_name}"))
             },
         );
@@ -74,7 +75,7 @@ async fn table(
     body: web::Bytes,
     user: Option<Identity>,
 ) -> impl Responder {
-    if let Some(user) = user {
+    if let Some(_user) = user {
         // TODO: check that name correspond to identity !!
 
         let body_str = match String::from_utf8(body.to_vec()) {

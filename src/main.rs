@@ -124,7 +124,7 @@ async fn main() -> Result<()> {
     // When using `Key::generate()` it is important to initialize outside of the
     // `HttpServer::new` closure. When deployed the secret key should be read from a
     // configuration file or environment variables.
-    let secret_key = Key::generate();
+    //let secret_key = Key::generate();
 
 //    let redis_store = RedisSessionStore::new("redis://127.0.0.1:6379")
 //        .await

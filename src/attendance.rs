@@ -179,7 +179,7 @@ impl Attendance {
         Box::new((1..21).map(|i: i32| -i))
     }
 
-    pub fn html(&self, tera: &web::Data<Tera>) -> tera::Result<String> {
+    pub fn html(&self, tera: &web::Data<Tera>, is_admin: bool) -> tera::Result<String> {
         let mut v = self.students
             .clone() // todo ?
             .into_iter()
@@ -262,6 +262,7 @@ impl Attendance {
             ).as_str();
 
         let mut context = Context::new();
+        context.insert("is_admin", &is_admin);
         context.insert("attendance", self);
         context.insert("table", table.as_str());
         tera.render("attendance.html", &context)

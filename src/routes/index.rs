@@ -55,11 +55,13 @@ async fn index(
 
         let (id, name) = TeachRec::split_id_and_name(user.id().unwrap());
         let id = id.parse().map_or(id, |id: i32| format!("{:04}", id));
+        let is_admin: bool = id.parse() == Ok(0);
         let opens =
             read_attendance_dir(id.as_str())("attendance/inbox")
                 .unwrap_or(Vec::new()); // todo: report errors
 
         let mut context = Context::new();
+        context.insert("is_admin", &is_admin);
         context.insert("name", format!("{name} (номер {id})").as_str());
         context.insert("opens", &opens);
 
