@@ -1,11 +1,11 @@
-use std::{error, fs, iter};
+use std::fs;
 use std::fs::File;
 use std::io::{self, BufRead, BufReader};
 use chrono::{Datelike, NaiveDate, Weekday};
 use std::collections::HashMap;
 use std::path::{Path, PathBuf};
 use actix_web::web;
-use serde::{Deserialize, Serialize};
+use serde::Serialize;
 use tera::{Context, Tera};
 
 #[derive(Clone, Debug, Serialize)]

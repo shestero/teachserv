@@ -1,5 +1,5 @@
 use actix_identity::Identity;
-use actix_web::{body, get, put, web, HttpRequest, HttpResponse, Responder};
+use actix_web::{get, put, web, HttpRequest, HttpResponse, Responder};
 use std::collections::HashMap;
 use std::fs;
 use actix_web::http::StatusCode;
@@ -13,12 +13,13 @@ pub struct Student {
     name: String,
 }
 
-const STUDENT_FILE: &str = "students.tsv";
+pub const STUDENTS_FILE: &str = "students.tsv";
+pub const TEACHERS_FILE: &str = "teachers.tsv";
 
 pub fn read_students() -> csv::Result<HashMap<i16, String>> {
     csv::ReaderBuilder::new()
         .delimiter(b'\t')
-        .from_path(STUDENT_FILE)?
+        .from_path(STUDENTS_FILE)?
         .deserialize()
         .map(|res| res.map(|s: Student| (s.id, s.name)))
         .collect()
@@ -26,7 +27,7 @@ pub fn read_students() -> csv::Result<HashMap<i16, String>> {
 
 #[get("/students/hash")] // /api
 pub async fn students_hash() -> actix_web::Result<impl Responder> {
-    let hash = sha256::try_digest(std::path::Path::new(STUDENT_FILE))?;
+    let hash = sha256::try_digest(std::path::Path::new(STUDENTS_FILE))?;
     Ok(HttpResponse::Ok().body(hash))
 }
 
@@ -72,5 +73,18 @@ pub async fn students(
 
 #[put("/students")]
 pub async fn put_students(body: String) -> impl Responder {
-    fs::write(STUDENT_FILE, body).map(|_| "OK")
+    fs::write(STUDENTS_FILE, body).map(|_| "OK")
+}
+
+// copy-paste /teachers/hash
+#[get("/teachers/hash")] // /api
+pub async fn teachers_hash() -> actix_web::Result<impl Responder> {
+    let hash = sha256::try_digest(std::path::Path::new(TEACHERS_FILE))?;
+    Ok(HttpResponse::Ok().body(hash))
+}
+
+// copy-paste put /teachers
+#[put("/teachers")]
+pub async fn put_teachers(body: String) -> impl Responder {
+    fs::write(TEACHERS_FILE, body).map(|_| "OK")
 }

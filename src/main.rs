@@ -144,7 +144,9 @@ async fn main() -> Result<()> {
             .service(api_tables::put_attendance_no_hash)
             .service(api_tables::delete_attendance)
             .service(student::put_students)
-            .service(student::students_hash);
+            .service(student::students_hash)
+            .service(student::put_teachers)
+            .service(student::teachers_hash);
 
         App::new()
             .app_data(PayloadConfig::new(*payload_limit))
