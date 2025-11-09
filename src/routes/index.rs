@@ -3,19 +3,22 @@ use std::fs::DirEntry;
 use std::{fs, io};
 use std::ffi::OsStr;
 use std::path::Path;
+
 use actix_web::{get, post, web, HttpResponse, Responder, HttpRequest, HttpMessage};
 use actix_identity::Identity;
 use actix_session::storage::RedisSessionStore;
 
-use ::captcha::Captcha;
-use ::captcha::filters::Noise;
+use ::captcha::{Captcha, CaptchaName, Difficulty, Geometry};
+use ::captcha::filters::{Cow, Noise, Wave};
+use base64::Engine;
+
 use actix_web::http::header::ContentType;
 use tera::{Context, Tera};
 use crate::attendance::Attendance;
 use crate::routes::login::Login;
 use crate::routes::user_agent_info;
 use crate::teachrec::TeachRec;
-
+use crate::wrong_pwd::{time_since_last_wrong_pwd, update_wrong_pwd_timestamp};
 
 fn read_entity<'a>(th_id: &'a str) -> impl Fn(DirEntry) -> Option<Attendance> + 'a {
     move |entry| {
@@ -83,6 +86,17 @@ async fn index(
 async fn login_form(tera: web::Data<Tera>) -> impl Responder {
     let mut context = Context::new();
 
+    let use_captcha: bool =
+        match time_since_last_wrong_pwd() {
+            Ok(None) => false,
+            Ok(Some(d)) => d < *crate::cooldown_time,
+            _ => true
+        };
+
+    println!("use captcha? {use_captcha}, last wrong pwd: {:?}",
+             time_since_last_wrong_pwd().map(|res| res.map(humantime::format_duration))
+    );
+
     let body =
         tera
             .render("login.html", &context)
@@ -115,8 +129,13 @@ async fn login(req: HttpRequest, form: web::Form<Login>) -> impl Responder {
                 .respond_to(&req)
                 .map_into_boxed_body()
         },
-        None =>
+        None => {
+            if let Err(error) = update_wrong_pwd_timestamp() {
+                println!("Cannot set last wrong password timestamp: {error}");
+            }
+
             HttpResponse::Ok().body("Wrong login/password")
+        }
     }
 
 }
@@ -130,16 +149,60 @@ async fn logout(user: Identity) -> impl Responder {
 #[get("/captcha")]
 async fn captcha() -> impl Responder {
     let mut c = Captcha::new();
-    let c = c.add_chars(5);
+    let c = c.add_chars(7);
+    let token = c.chars_as_string();
     println!("chars={}", c.chars_as_string());
     let png =
         c
-            .apply_filter(Noise::new(0.1))
-            .view(220, 120)
+            .apply_filter(Noise::new(0.2))
+            .apply_filter(Wave::new(2.0, 20.0))
+            .view(340, 120)
+            .apply_filter(
+                Cow::new()
+                    .min_radius(30)
+                    .max_radius(50)
+                    .circles(2)
+                    .area(Geometry::new(30, 250, 50, 70)),
+            )
             .as_png()
             .expect("Error: cannot generate PNG!");
 
+    captcha_int(); // just test
+
     HttpResponse::Ok()
         .insert_header(ContentType::png())
+        .insert_header(("X-Captcha-Token", token))
         .body(png)
+}
+
+fn captcha_int()  {
+    let mut c = Captcha::new();
+    let c = c.add_chars(7);
+    let token = c.chars_as_string();
+    println!("[int] chars={}", c.chars_as_string());
+    let png =
+        c
+            .apply_filter(Noise::new(0.2))
+            .apply_filter(Wave::new(2.0, 20.0))
+            .view(340, 120)
+            .apply_filter(
+                Cow::new()
+                    .min_radius(30)
+                    .max_radius(50)
+                    .circles(2)
+                    .area(Geometry::new(30, 250, 50, 70)),
+            )
+            .as_png()
+            .expect("Error: cannot generate PNG!");
+
+    let b64 = base64::engine::general_purpose::STANDARD.encode(&png);
+
+    /*
+    let mut buf = Cursor::new(Vec::new());
+    png.write_to(&mut buf, ImageOutputFormat::Png).expect("Cannot write PNG into buf!");
+    let b64 = base64::encode(buf.into_inner());
+    */
+
+    println!("Data URL (use in <img src=\"data:image/png;base64,...\"):\n data:image/png;base64,{}", b64);
+
 }

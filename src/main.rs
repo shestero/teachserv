@@ -12,7 +12,7 @@ use config::Config;
 use actix_web::{cookie::Key, App, HttpServer};
 use actix_web::web::{PayloadConfig, scope};
 use actix_identity::IdentityMiddleware;
-use actix_session::{storage::RedisSessionStore, SessionMiddleware};
+use actix_session::{storage::RedisSessionStore, SessionMiddleware}; // unused
 use actix_session::storage::CookieSessionStore;
 use actix_web_httpauth::middleware::HttpAuthentication;
 
@@ -20,11 +20,11 @@ mod routes;
 mod teachrec;
 mod attendance;
 mod filerec;
+mod wrong_pwd;
 
 use routes::{index, student, teacher, api_tables};
 use crate::filerec::FileRec;
 
-#[macro_use]
 lazy_static::lazy_static! {
     static ref settings: Config = Config::builder()
         .add_source(config::File::with_name("./teachserv"))
@@ -50,6 +50,11 @@ lazy_static::lazy_static! {
         settings.get_string("api.login").expect("api.login not defined");
     static ref api_password: String =
         settings.get_string("api.password").expect("api.password not defined");
+
+    static ref cooldown_time: std::time::Duration =
+        settings.get_string("cooldown_time")
+            .map(|s| humantime::parse_duration(s.as_str()).expect("wrong cooldown_time value: {s}"))
+            .unwrap_or(std::time::Duration::from_secs(600)); // default: 10 minutes
 }
 
 fn files_with_age(dir: &str) -> Result<Vec<FileRec>> {

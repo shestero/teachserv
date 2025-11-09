@@ -5,12 +5,6 @@ body {
     background-color: #f0f0f0;
 }
 
-.login-body {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-}
-
 .block {
     background-color: #ffffff;
     padding: 20px;
