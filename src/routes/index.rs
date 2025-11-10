@@ -6,7 +6,7 @@ use std::path::Path;
 
 use actix_web::{get, post, web, HttpResponse, Responder, HttpRequest, HttpMessage};
 use actix_identity::Identity;
-use actix_session::storage::RedisSessionStore;
+//use actix_session::storage::RedisSessionStore;
 
 use ::captcha::{Captcha, CaptchaName, Difficulty, Geometry};
 use ::captcha::filters::{Cow, Noise, Wave};
@@ -18,7 +18,7 @@ use crate::attendance::Attendance;
 use crate::routes::login::Login;
 use crate::routes::user_agent_info;
 use crate::teachrec::TeachRec;
-use crate::wrong_pwd::{time_since_last_wrong_pwd, update_wrong_pwd_timestamp};
+use crate::wrong_pwd::{need_captcha, time_since_last_wrong_pwd, update_wrong_pwd_timestamp};
 
 fn read_entity<'a>(th_id: &'a str) -> impl Fn(DirEntry) -> Option<Attendance> + 'a {
     move |entry| {
@@ -86,16 +86,15 @@ async fn index(
 async fn login_form(tera: web::Data<Tera>) -> impl Responder {
     let mut context = Context::new();
 
-    let use_captcha: bool =
-        match time_since_last_wrong_pwd() {
-            Ok(None) => false,
-            Ok(Some(d)) => d < *crate::cooldown_time,
-            _ => true
-        };
-
-    println!("use captcha? {use_captcha}, last wrong pwd: {:?}",
+    println!("use captcha? {}, last wrong pwd: {:?}",
+             need_captcha(),
              time_since_last_wrong_pwd().map(|res| res.map(humantime::format_duration))
     );
+
+    if need_captcha() {
+        println!("Captcha is required!");
+        context.insert("captcha", captcha_internal(&tera).as_str());
+    }
 
     let body =
         tera
@@ -113,6 +112,14 @@ async fn login(req: HttpRequest, form: web::Form<Login>) -> impl Responder {
     // Some kind of authentication should happen here
     // e.g. password-based, biometric, etc.
     // [...]
+
+    if need_captcha() {
+        println!("Captcha is required!");
+
+        if !form.check_captcha() {
+            return HttpResponse::Ok().body("Wrong captcha!");
+        }
+    }
 
     match TeachRec::find(form.into_inner()) {
         Some(rec) => {
@@ -167,15 +174,13 @@ async fn captcha() -> impl Responder {
             .as_png()
             .expect("Error: cannot generate PNG!");
 
-    captcha_int(); // just test
-
     HttpResponse::Ok()
         .insert_header(ContentType::png())
         .insert_header(("X-Captcha-Token", token))
         .body(png)
 }
 
-fn captcha_int()  {
+fn captcha_internal(tera: &Tera) -> String {
     let mut c = Captcha::new();
     let c = c.add_chars(7);
     let token = c.chars_as_string();
@@ -203,6 +208,12 @@ fn captcha_int()  {
     let b64 = base64::encode(buf.into_inner());
     */
 
-    println!("Data URL (use in <img src=\"data:image/png;base64,...\"):\n data:image/png;base64,{}", b64);
+    let mut context = Context::new();
+    context.insert("b64", b64.as_str());
+    context.insert("token", token.as_str());
+
+    tera
+        .render("captcha.html", &context)
+        .expect("Cannot render captcha template!")
 
 }

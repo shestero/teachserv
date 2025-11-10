@@ -19,11 +19,7 @@
         <input id="login" name="login" type="text"/>
         <label for="password">Пароль: </label>
         <input id="password" name="password" type="password"/>
-        <div style="display: flex; justify-content: center; text-align: center;">
-        <img src="/captcha" width="340" height="120"/>
-        </div>
-        <label for="captcha">Символы на картинке: </label>
-        <input id="captcha" name="captcha" type="text"/>
+        {{ captcha | default(value='') }}
         <input type="submit" value="Войти">
         <input type="reset" value="Cброс">
     </form>

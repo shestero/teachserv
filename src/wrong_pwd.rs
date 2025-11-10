@@ -25,3 +25,11 @@ pub fn time_since_last_wrong_pwd() -> Result<Option<Duration>, Box<dyn Error>> {
 
     Ok( (*time_guard).map(|last_time| last_time.elapsed()) )
 }
+
+pub fn need_captcha() -> bool {
+    match time_since_last_wrong_pwd() {
+        Ok(None) => false,
+        Ok(Some(d)) => d < *crate::cooldown_time,
+        _ => true
+    }
+}

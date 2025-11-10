@@ -18,6 +18,7 @@ impl TeachRec {
 
         let file = File::open(TEACHERS_FILE)
             .expect(format!("No {TEACHERS_FILE} file!!").as_str());
+
         csv::ReaderBuilder::new()
             .delimiter(b'\t') // Specify tab as the delimiter
             .from_reader(file)
