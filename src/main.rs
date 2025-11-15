@@ -34,6 +34,20 @@ lazy_static::lazy_static! {
         .build()
         .expect("teachserv.toml not found!");
 
+    static ref captcha_secret: Vec<u8> =
+        settings
+            .get_string("captcha_secret")
+            .map(|s| s.into_bytes())
+            .unwrap_or(b"very-secret-key-change-in-prod-please".to_vec());
+
+    static ref valid_sec: i64 =
+        i64::try_from(settings.get_int("valid_sec").unwrap_or(60)).unwrap_or(60);
+
+    static ref cooldown_time: std::time::Duration =
+        settings.get_string("cooldown_time")
+            .map(|s| humantime::parse_duration(s.as_str()).expect("wrong cooldown_time value: {s}"))
+            .unwrap_or(std::time::Duration::from_secs(600)); // default: 10 minutes
+
     static ref host: String =
         settings.get_string("host").unwrap_or("localhost".to_string());
     static ref port: u16 =
@@ -50,11 +64,6 @@ lazy_static::lazy_static! {
         settings.get_string("api.login").expect("api.login not defined");
     static ref api_password: String =
         settings.get_string("api.password").expect("api.password not defined");
-
-    static ref cooldown_time: std::time::Duration =
-        settings.get_string("cooldown_time")
-            .map(|s| humantime::parse_duration(s.as_str()).expect("wrong cooldown_time value: {s}"))
-            .unwrap_or(std::time::Duration::from_secs(600)); // default: 10 minutes
 }
 
 fn files_with_age(dir: &str) -> Result<Vec<FileRec>> {
@@ -180,15 +189,16 @@ async fn main() -> Result<()> {
             .service(index::login)
             .service(index::logout)
             .service(index::login_form)
-            .service(index::captcha)
+            //.service(index::captcha)
             .service(student::students)
             .service(teacher::table)
             .service(teacher::table_form)
             .service(api)
             .service(
                 actix_files::Files::new("/static", "static")
-                    .index_file("index.html") // todo
-                    .show_files_listing() // todo
+                    // for debug:
+                    //.index_file("index.html")
+                    //.show_files_listing()
                     .use_last_modified(true)
             )
     })

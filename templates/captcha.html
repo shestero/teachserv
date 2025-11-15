@@ -1,6 +1,8 @@
         <div style="display: flex; justify-content: center; text-align: center;">
             <img src="data:image/png;base64,{{ b64 }}">
         </div>
+        <div style="font-style: italic;justify-content: center; text-align: center;">(действительна {{ valid_sec }} секунд!)</div>
         <input type="hidden" name="token" value="{{ token }}">
+        <p></p>
         <label for="captcha">Символы на картинке: </label>
         <input id="captcha" name="captcha" type="text" required>

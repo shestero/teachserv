@@ -1,7 +1,7 @@
 [package]
 name = "teachserv"
 version = "0.1.0"
-edition = "2021" # "2024"
+edition = "2024" # "2021"
 
 [dependencies]
 log = "0.4"
@@ -26,4 +26,8 @@ form_urlencoded = "1.2.1"
 assert = "0.7.5"
 humantime = "2.3.0"
 base64 = "0.22.1"
+sha2 = "0.10.9"
+rand = "0.8.5"
+time = "0.3.43"
+hmac = "0.12.1"
 

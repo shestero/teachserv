@@ -10,7 +10,13 @@ use actix_identity::Identity;
 
 use ::captcha::{Captcha, CaptchaName, Difficulty, Geometry};
 use ::captcha::filters::{Cow, Noise, Wave};
-use base64::Engine;
+use rand::{RngCore, rngs::OsRng};
+use time::{OffsetDateTime, Duration};
+use crate::{captcha_secret, valid_sec};
+use base64::Engine as _; // use base64::Engine;
+use sha2::Sha256;
+use hmac::{Hmac, Mac};
+type HmacSha256 = Hmac<Sha256>;
 
 use actix_web::http::header::ContentType;
 use tera::{Context, Tera};
@@ -116,8 +122,8 @@ async fn login(req: HttpRequest, form: web::Form<Login>) -> impl Responder {
     if need_captcha() {
         println!("Captcha is required!");
 
-        if !form.check_captcha() {
-            return HttpResponse::Ok().body("Wrong captcha!");
+        if let Some(message) = form.check_captcha() {
+            return HttpResponse::Ok().body(message);
         }
     }
 
@@ -153,6 +159,7 @@ async fn logout(user: Identity) -> impl Responder {
     web::Redirect::to("/")
 }
 
+/*
 #[get("/captcha")]
 async fn captcha() -> impl Responder {
     let mut c = Captcha::new();
@@ -179,12 +186,44 @@ async fn captcha() -> impl Responder {
         .insert_header(("X-Captcha-Token", token))
         .body(png)
 }
+*/
+
+/// Создаёт подписанный токен, который включает:
+/// base64( nonce || expiry_unix || answer_hash || signature )
+pub fn create_signed_token(answer: &str, ttl_seconds: i64) -> String {
+    // nonce для уникальности (8 байт)
+    let mut nonce = [0u8; 8];
+    OsRng.fill_bytes(&mut nonce);
+
+    let expiry = OffsetDateTime::now_utc() + Duration::seconds(ttl_seconds);
+    let expiry_unix = expiry.unix_timestamp();
+
+    // хэш ответа (чтобы не хранить ответ явным текстом)
+    use sha2::{Digest};
+    let answer_hash = sha2::Sha256::digest(answer.as_bytes());
+
+    // формируем payload: nonce || expiry || answer_hash
+    let mut payload = Vec::new();
+    payload.extend_from_slice(&nonce);
+    payload.extend_from_slice(&expiry_unix.to_be_bytes());
+    payload.extend_from_slice(&answer_hash);
+
+    // подпись HMAC
+    let mut mac = HmacSha256::new_from_slice(&*captcha_secret).expect("HMAC can take key of any size");
+    mac.update(&payload);
+    let signature = mac.finalize().into_bytes();
+
+    // итоговый токен: payload || signature, base64
+    let mut token_bytes = payload;
+    token_bytes.extend_from_slice(&signature);
+    base64::engine::general_purpose::STANDARD.encode(token_bytes)
+}
 
 fn captcha_internal(tera: &Tera) -> String {
     let mut c = Captcha::new();
     let c = c.add_chars(7);
-    let token = c.chars_as_string();
-    println!("[int] chars={}", c.chars_as_string());
+    let token = create_signed_token(&c.chars_as_string(), *valid_sec);
+    println!("[captcha_internal] chars={}", c.chars_as_string());
     let png =
         c
             .apply_filter(Noise::new(0.2))
@@ -211,6 +250,7 @@ fn captcha_internal(tera: &Tera) -> String {
     let mut context = Context::new();
     context.insert("b64", b64.as_str());
     context.insert("token", token.as_str());
+    context.insert("valid_sec", (&(*valid_sec)).into());
 
     tera
         .render("captcha.html", &context)
